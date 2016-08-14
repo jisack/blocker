@@ -98,6 +98,9 @@ function init(){
     for(var i=0;i<40;i++){
         new Rock(map.randomX(),map.randomY());
     }
+    for(var i=0;i<6;i++){
+        new Zombie();
+    }
 }
 
 //update

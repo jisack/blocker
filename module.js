@@ -10,6 +10,9 @@ Point = function(x,y){
 	this.x = x;
 	this.y = y;
 }
+function dotProduct(x1,y1,x2,y2){
+	return (x1*x2 + y1*y2);
+}
 function distance(x1,y1,x2,y2){
     var dx = x1-x2;
     var dy = y1-y2;
@@ -61,13 +64,14 @@ Creature = function(x,y){
         sp: 10,
         msp:10,
         atk: 1,
-        spd: 25
+        spd: Game.SPEED
     };
     return org;
 }
 
 //constant
 Game = {};
+Game.SPEED = 25;
 Game.JOB_WARRIOR = 1;
 Game.JOB_ARCHER = 2;
 
@@ -86,7 +90,26 @@ Hero = function(ws,data){
         if(ctr.stat.sp>=10){
             ctr.stat.sp -= 10;
             ctr.action.attack = true;
+
+            function attack(e){
+                if(e!=ctr){
+                    var dx = Math.cos(ctr.rotation)*Game.SPEED;
+                    var dy = Math.sin(ctr.rotation)*Game.SPEED;
+                    var fx = ctr.x - dx;
+                    var fy = ctr.y - dy;
+                    var dist = distance(e.x,e.y,fx,fy);
+                    if(40+e.radius > dist){
+                        e.x = e.x - dx*2;
+                        e.y = e.y - dy*2;
+                        e.action.hit = true;
+                    }
+                }
+            }
+            for(var i in map.creatures){
+                attack(map.creatures[i]);
+            }
         }
+        
     }
     ctr.defend = function(){
 
@@ -115,12 +138,14 @@ Hero = function(ws,data){
         if(ctr.stat.sp<ctr.stat.msp){
             ctr.stat.sp++;
         }
+
+        //clear status
         setTimeout(function(){
             ctr.reset();
         },1);
     }
     ctr.reset = function(){
-        if(ctr.action.attack) delete ctr.action.attack;
+        ctr.action = {};
     }
     ctr.getData = function(){
         var data = ctr.data();
@@ -130,6 +155,54 @@ Hero = function(ws,data){
 
     map.creatures.push(ctr);
     return ctr;
+}
+
+//monsters
+Monster = function(){
+    var ctr = new Creature(map.randomX(),map.randomY());
+    ctr.action = {};
+    ctr.stat.spd = 15;
+    ctr.time = 0;
+
+    ctr.update = function(){
+        if(ctr.time<=0 ||ctr.action.hit){
+            ctr.time = Math.floor(Math.random()*30);
+            ctr.rotation = (Math.random()*Math.PI)*(Math.random()<0.5 ? -1:1);
+        }else{
+            ctr.x = ctr.x - Math.cos(ctr.rotation)*ctr.stat.spd;
+            ctr.y = ctr.y - Math.sin(ctr.rotation)*ctr.stat.spd;
+            ctr.time--;
+        }
+
+        map.collide(ctr);
+        for(var i in map.creatures){
+            map.creatures[i].collide(ctr);
+        }
+        for(var i in map.obstacles){
+            map.obstacles[i].collide(ctr);
+        }
+
+        //clear status
+        setTimeout(function(){
+            ctr.reset();
+        },1);
+    }
+    ctr.reset = function(){
+        ctr.action = {};
+    }
+    ctr.getData = function(){
+        var data = ctr.data();
+        data.action = ctr.action;
+        return data;
+    }
+    return ctr;
+}
+Zombie = function(){
+    var mon = new Monster();
+    mon.type = 'zombie';
+
+    map.creatures.push(mon);
+    return mon;
 }
 
 //obstacle

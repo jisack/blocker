@@ -142,20 +142,19 @@ Hero = function(data){
         obj.weapon.animations.play('slash', 20, false);
     }
     obj.hit = function(){
-        obj.animations.play('hit', 20, false);
+        obj.animations.play('hit', 10, false);
     }
 
     obj.live = function(data){
         if(data.action.attack){
             obj.attack();
         }
+        if(data.action.hit){
+            obj.hit();
+        }
         new Tween(obj, obj.id, {rotation:data.rotation, x:data.x, y:data.y}, 10);
         new Tween(obj.weapon, obj.id+'w', {rotation:data.rotation, x:data.x, y:data.y}, 10, true);
         new Tween(obj.shadowImage, obj.id+'s', {x:data.x-data.radius+obj.shadow.spread, y:data.y-data.radius+obj.shadow.spread}, 10);
-        //obj.rotation = data.rotation;
-        /*game.add.tween(obj).to({rotation:data.rotation, x:data.x, y:data.y}, 100, Phaser.Easing.Linear.None, true);
-        game.add.tween(obj.weapon).to({rotation:data.rotation, x:data.x, y:data.y}, 100, Phaser.Easing.Linear.None, true);
-        game.add.tween(obj.shadowImage).to({x:data.x-data.radius+obj.shadow.spread, y:data.y-data.radius+obj.shadow.spread}, 100, Phaser.Easing.Linear.None, true);*/
     }
     creatures[data.id] = obj;
     return obj;
@@ -165,6 +164,45 @@ Player = function(data){
     return obj;
 }
 
+Zombie = function(data){
+var obj = zombies.create(data.x, data.y, 'zombie');
+    obj.id = data.id;
+    obj.scale.set(data.scale);
+    obj.anchor.setTo(0.5, 0.5);
+    obj.animations.add('hit');
+    obj.events.onAnimationComplete.add(function(){
+        obj.frame = 0;
+    });
+
+    obj.shadow = {
+        scale: data.shadow.scale,
+        spread: data.shadow.spread
+    };
+    obj.shadowImage = shadows.create(
+        data.x-data.radius+obj.shadow.spread,
+        data.y-data.radius+obj.shadow.spread,
+        'shadow');
+    obj.shadowImage.scale.set(data.shadow.scale);
+
+    //weapon
+    obj.weapon = weapons.create(data.x, data.y, 'hands');
+    obj.weapon.anchor.setTo(0.5, 0.5);
+
+    obj.hit = function(){
+        obj.animations.play('hit', 10, false);
+    }
+
+    obj.live = function(data){
+        if(data.action.hit){
+            obj.hit();
+        }
+        new Tween(obj, obj.id, {rotation:data.rotation, x:data.x, y:data.y}, 10);
+        new Tween(obj.weapon, obj.id+'w', {rotation:data.rotation, x:data.x, y:data.y}, 10, true);
+        new Tween(obj.shadowImage, obj.id+'s', {x:data.x-data.radius+obj.shadow.spread, y:data.y-data.radius+obj.shadow.spread}, 10);
+    }
+    creatures[data.id] = obj;
+    return obj;
+}
 Tree = function(data,type){
     var obj = trees.create(data.x, data.y, type);
     obj.rotation = data.rotation;

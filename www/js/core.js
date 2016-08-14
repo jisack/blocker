@@ -3,9 +3,12 @@ var game = new Phaser.Game('100%', '100%', Phaser.CANVAS, 'RPG', { preload: prel
 function preload(){
     game.load.image('bg', 'assets/bg.svg');
     game.load.image('shadow', 'assets/shadow.svg');
-    game.load.spritesheet('hero', 'assets/hero.svg',46,46);
     game.load.image('rock', 'assets/rock.svg');
     game.load.image('tree', 'assets/tree.svg');
+    
+    game.load.spritesheet('zombie', 'assets/zombie.svg',46,46);
+    game.load.image('hands', 'assets/weapons/hands.svg');
+    game.load.spritesheet('hero', 'assets/hero.svg',46,46);
     game.load.spritesheet('sword', 'assets/weapons/sword.svg',160,160);
 }
 
@@ -66,12 +69,15 @@ function render(){
 }
 
 //Initial
-var field,player,shadows,shadows2,heroes,trees,rocks,weapons;
+var field,player,shadows,shadows2,zombies,heroes,trees,rocks,weapons;
 var creatures = {};
 function init(){
     weapons = game.add.group();
     shadows = game.add.group();
+
+    zombies = game.add.group();
     heroes = game.add.group();
+
     shadows2 = game.add.group();
     rocks = game.add.group();
     trees = game.add.group();
@@ -108,6 +114,13 @@ var map = {
                         obj.live(data[i]);
                     }else{
                         new Hero(data[i]);
+                    }
+                    break;
+                case 'zombie':
+                    if(obj){
+                        obj.live(data[i]);
+                    }else{
+                        new Zombie(data[i]);
                     }
                     break;
             }
