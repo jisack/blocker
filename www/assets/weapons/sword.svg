@@ -1,5 +1,5 @@
 
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="none" x="0px" y="0px" width="80px" height="80px" viewBox="0 0 80 80">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="none" x="0px" y="0px" width="120px" height="120px" viewBox="0 0 120 120">
 <defs>
 <linearGradient id="Gradient_1" gradientUnits="userSpaceOnUse" x1="4.975000000000001" y1="7.75" x2="38.225" y2="7.75" spreadMethod="pad">
 <stop  offset="0%" stop-color="#D4CDCD"/>
@@ -9,8 +9,8 @@
 
 <g id="Symbol_2_0_Layer0_0_FILL">
 <path fill="#D4CDCD" stroke="none" d="
-M 0 7.75
-L 5 12.75 38.25 2.75 5 2.75 0 7.75 Z"/>
+M 38.25 2.75
+L 5 2.75 0 7.75 5 12.75 38.25 2.75 Z"/>
 
 <path fill="url(#Gradient_1)" stroke="none" d="
 M 38.25 12.75
@@ -38,7 +38,7 @@ L 34.1 51.15 27.7 44.75 21.25 51.2 27.65 57.6 Z"/>
 </g>
 </defs>
 
-<g transform="matrix( 1, 0, 0, 1, 0,9) ">
+<g transform="matrix( 1, 0, 0, 1, 18,29.5) ">
 <g transform="matrix( 1, 0, 0, 1, 0,0) ">
 <use xlink:href="#Symbol_2_0_Layer0_0_FILL"/>
 </g>

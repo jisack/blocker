@@ -13,6 +13,10 @@ function create(){
     ws = new WebSocket('ws://'+location.hostname+':8888');
     client();
 
+    //mouse
+    game.canvas.oncontextmenu = function (e) { e.preventDefault(); }
+    game.input.mouse.capture = true;
+
     game.stage.disableVisibilityChange = true;
     game.world.setBounds(0, 0, 2000, 2000);
 
@@ -23,7 +27,7 @@ function create(){
 
 function update(){
     if(map.ready){
-        if (game.input.mousePointer.isDown){
+        if (game.input.activePointer.leftButton.isDown){
             var rad = pointToRadian(
                 player.position.x-game.camera.x,
                 player.position.y-game.camera.y,
