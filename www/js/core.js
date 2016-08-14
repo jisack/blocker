@@ -3,10 +3,10 @@ var game = new Phaser.Game('100%', '100%', Phaser.CANVAS, 'RPG', { preload: prel
 function preload(){
     game.load.image('bg', 'assets/bg.svg');
     game.load.image('shadow', 'assets/shadow.svg');
-    game.load.image('hero', 'assets/hero.svg');
+    game.load.spritesheet('hero', 'assets/hero.svg',46,46);
     game.load.image('rock', 'assets/rock.svg');
     game.load.image('tree', 'assets/tree.svg');
-    game.load.image('sword', 'assets/weapons/sword.svg');
+    game.load.spritesheet('sword', 'assets/weapons/sword.svg',160,160);
 }
 
 function create(){
@@ -40,6 +40,21 @@ function update(){
                 rotation: rad
             }));
         }
+        if (game.input.activePointer.rightButton.isDown){
+            var rad = pointToRadian(
+                player.position.x-game.camera.x,
+                player.position.y-game.camera.y,
+                game.input.x,
+                game.input.y);
+            player.rotation = rad;
+            ws.send(JSON.stringify({
+                status: 'attack',
+                id: player.id,
+                rotation: rad
+            }));
+        }
+
+        //tween motion
         for(var i in tweens){
             tweens[i].update();
         };

@@ -26,7 +26,7 @@ Origin = function(x,y){
     this.scale = 1;
     this.rotation = (1.57*Math.floor(Math.random()*3)*Math.floor(Math.random()*(-1)));
     this.shadow = {scale:1,spread:15};
-    this.getData = function(){
+    this.data = function(){
         return {
             id: this.id,
             type: this.type,
@@ -37,6 +37,9 @@ Origin = function(x,y){
             rotation: this.rotation,
             shadow: this.shadow
         };
+    }
+    this.getData = function(){
+        return this.data();
     }
     this.collide = function(ctr){
         if(this!=ctr){
@@ -56,6 +59,7 @@ Creature = function(x,y){
     org.stat = {
         hp: 5,
         sp: 10,
+        msp:10,
         atk: 1,
         spd: 25
     };
@@ -76,9 +80,13 @@ Hero = function(ws,data){
     ctr.kill = 0;
     ctr.assist = 0;
     ctr.job = Game.JOB_WARRIOR;
+    ctr.action = {};
 
     ctr.attack = function(){
-
+        if(ctr.stat.sp>=10){
+            ctr.stat.sp -= 10;
+            ctr.action.attack = true;
+        }
     }
     ctr.defend = function(){
 
@@ -89,6 +97,8 @@ Hero = function(ws,data){
             ctr.x = ctr.move.x;
             ctr.y = ctr.move.y;
             delete ctr.move;
+
+            ctr.status = 'move';
         }
         map.collide(ctr);
         for(var i in map.creatures){
@@ -98,9 +108,24 @@ Hero = function(ws,data){
             map.obstacles[i].collide(ctr);
         }
 
+        //stat
         if(ctr.stat.hp<=0){
 
         }
+        if(ctr.stat.sp<ctr.stat.msp){
+            ctr.stat.sp++;
+        }
+        setTimeout(function(){
+            ctr.reset();
+        },1);
+    }
+    ctr.reset = function(){
+        if(ctr.action.attack) delete ctr.action.attack;
+    }
+    ctr.getData = function(){
+        var data = ctr.data();
+        data.action = ctr.action;
+        return data;
     }
 
     map.creatures.push(ctr);

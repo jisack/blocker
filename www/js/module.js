@@ -115,6 +115,11 @@ Hero = function(data){
     obj.id = data.id;
     obj.scale.set(data.scale);
     obj.anchor.setTo(0.5, 0.5);
+    obj.animations.add('hit');
+    obj.events.onAnimationComplete.add(function(){
+        obj.frame = 0;
+    });
+
     obj.shadow = {
         scale: data.shadow.scale,
         spread: data.shadow.spread
@@ -128,8 +133,22 @@ Hero = function(data){
     //weapon
     obj.weapon = weapons.create(data.x, data.y, 'sword');
     obj.weapon.anchor.setTo(0.5, 0.5);
+    obj.weapon.animations.add('slash');
+    obj.weapon.events.onAnimationComplete.add(function(){
+        obj.weapon.frame = 0;
+    });
+
+    obj.attack = function(){
+        obj.weapon.animations.play('slash', 20, false);
+    }
+    obj.hit = function(){
+        obj.animations.play('hit', 20, false);
+    }
 
     obj.live = function(data){
+        if(data.action.attack){
+            obj.attack();
+        }
         new Tween(obj, obj.id, {rotation:data.rotation, x:data.x, y:data.y}, 10);
         new Tween(obj.weapon, obj.id+'w', {rotation:data.rotation, x:data.x, y:data.y}, 10, true);
         new Tween(obj.shadowImage, obj.id+'s', {x:data.x-data.radius+obj.shadow.spread, y:data.y-data.radius+obj.shadow.spread}, 10);

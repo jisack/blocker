@@ -51,6 +51,11 @@ function move(data){
         y: hero.y - Math.sin(data.rotation)*hero.stat.spd
     }
 }
+function attack(data){
+    var hero = users[data.id];
+    hero.rotation = data.rotation;
+    hero.attack();
+}
 function leave(ws){
     for(var i in users){
         if(users[i].ws==ws){
@@ -71,6 +76,9 @@ wss.on('connection', function(ws) {
                 break;
             case 'move':
                 move(data);
+                break;
+            case 'attack':
+                attack(data);
                 break;
         }
     });
