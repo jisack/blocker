@@ -29,7 +29,7 @@ function client(){
         init();
         ws.send(JSON.stringify({
             status:'join',
-            id:uuid(),
+            id:playId,
             name:'Unknown'
         }));
         console.log('Connected');

@@ -6,6 +6,8 @@ function preload(){
     game.load.image('rock', 'assets/rock.svg');
     game.load.image('tree', 'assets/tree.svg');
     
+    game.load.image('flake', 'assets/fx/flake.svg');
+    
     game.load.spritesheet('zombie', 'assets/zombie.svg',46,46);
     game.load.image('hands', 'assets/weapons/hands.svg');
     game.load.spritesheet('hero', 'assets/hero.svg',46,46);
@@ -30,7 +32,7 @@ function create(){
 
 function update(){
     if(map.ready){
-        if (game.input.activePointer.leftButton.isDown){
+        if (game.input.activePointer.leftButton.isDown || game.input.pointer1.isDown){
             var rad = pointToRadian(
                 player.position.x-game.camera.x,
                 player.position.y-game.camera.y,
@@ -43,7 +45,7 @@ function update(){
                 rotation: rad
             }));
         }
-        if (game.input.activePointer.rightButton.isDown){
+        if (game.input.activePointer.rightButton.isDown || game.input.pointer2.isDown){
             var rad = pointToRadian(
                 player.position.x-game.camera.x,
                 player.position.y-game.camera.y,
@@ -70,7 +72,7 @@ function render(){
 
 //Initial
 var field,player,shadows,shadows2,zombies,heroes,trees,rocks,weapons;
-var creatures = {};
+var playId,creatures = {};
 function init(){
     weapons = game.add.group();
     shadows = game.add.group();
@@ -81,6 +83,13 @@ function init(){
     shadows2 = game.add.group();
     rocks = game.add.group();
     trees = game.add.group();
+
+    emitter = game.add.emitter(-100,-100,5);
+    emitter.makeParticles('flake');
+    emitter.gravity = 100;
+
+    playId = localStorage.getItem('uuid')||uuid();
+    localStorage.setItem('uuid',playId);
 }
 
 //update map

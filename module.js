@@ -80,6 +80,7 @@ Hero = function(ws,data){
     ctr.id = data.id;
     ctr.type = 'hero';
     ctr.ws = ws;
+    ctr.ws.id = data.id;
     ctr.name = data.name;
     ctr.kill = 0;
     ctr.assist = 0;
@@ -147,13 +148,18 @@ Hero = function(ws,data){
     ctr.reset = function(){
         ctr.action = {};
     }
+    ctr.clear = function(){
+        delete map.creatures[ctr.id];
+        delete users[ctr.id];
+    }
     ctr.getData = function(){
         var data = ctr.data();
         data.action = ctr.action;
+        if(ctr.action.left) ctr.clear();
         return data;
     }
 
-    map.creatures.push(ctr);
+    map.creatures[ctr.id] = ctr;
     return ctr;
 }
 
@@ -190,9 +196,14 @@ Monster = function(){
     ctr.reset = function(){
         ctr.action = {};
     }
+    ctr.clear = function(){
+        delete map.creatures[ctr.id];
+        delete users[ctr.id];
+    }
     ctr.getData = function(){
         var data = ctr.data();
         data.action = ctr.action;
+        if(ctr.action.left) ctr.clear();
         return data;
     }
     return ctr;
@@ -201,7 +212,7 @@ Zombie = function(){
     var mon = new Monster();
     mon.type = 'zombie';
 
-    map.creatures.push(mon);
+    map.creatures[mon.id] = mon;
     return mon;
 }
 
@@ -214,7 +225,7 @@ Tree = function(x,y){
     org.shadow.spread *= org.scale;
     org.image = Math.floor(Math.random()*3);
     
-    map.obstacles.push(org);
+    map.obstacles[org.id] = org;
     return org;
 }
 
@@ -248,7 +259,7 @@ Rock = function(x,y){
             
         }
     }*/
-    map.obstacles.push(org);
+    map.obstacles[org.id] = org;
     return org;
 }
 
@@ -262,8 +273,8 @@ var map = {
     randomY: function(){
         return Math.floor(Math.random()*map.height);
     },
-    obstacles: [],
-    creatures: [],
+    obstacles: {},
+    creatures: {},
     collide: function(ctr){
         if(ctr.x<0){
             ctr.x = 0+ctr.radius;

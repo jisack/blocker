@@ -32,7 +32,11 @@ function send(ws,data){
     }
 }
 function join(ws,data){
-    users[data.id] = new Hero(ws,data);
+    if(users[data.id]){
+
+    }else{
+        users[data.id] = new Hero(ws,data);
+    }
     var mapData = [];
     for(var i in map.obstacles){
         mapData.push(map.obstacles[i].getData());
@@ -57,14 +61,16 @@ function attack(data){
     hero.attack();
 }
 function leave(ws){
-    for(var i in users){
+   /* for(var i in users){
         if(users[i].ws==ws){
             users[i].hp = 0;
             map.creatures.splice(i,1);
             delete users[i];
             break;
         }
-    }
+    }*/
+    var id = ws.id;
+    users[id].action.left = true;
 }
 
 wss.on('connection', function(ws) {

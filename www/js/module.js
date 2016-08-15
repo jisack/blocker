@@ -56,46 +56,50 @@ Tween = function(obj,id,data,time,slow){
         }
         this.mr = Math.abs(this.dr)/(this.time*this.slow);
     }
-    //console.log(t);Math.abs(this.dr/this.time)*2/this.rate;
 
     this.option = function(key){
+        var obj = this.obj;
         switch(key){
             case 'x':
                 if(this.dx<0){
-                    this.obj.x += this.mx;
+                    obj.x += this.mx;
                 }else if(this.dx>0){
-                    this.obj.x -= this.mx;
+                    obj.x -= this.mx;
                 }
                 break;
             case 'y':
                 if(this.dy<0){
-                    this.obj.y += this.my;
+                    obj.y += this.my;
                 }else if(this.dy>0){
-                    this.obj.y -= this.my;
+                    obj.y -= this.my;
                 }
                 break;
             case 'rotation':
                 if(this.cw){
-                    if(this.obj.rotation+this.mr>3.14){
-                        this.obj.rotation = -3.14-(this.obj.rotation+this.mr-3.14);
+                    if(obj.rotation+this.mr>3.14){
+                        obj.rotation = -3.14-(obj.rotation+this.mr-3.14);
                     }else{
-                        this.obj.rotation += this.mr;
+                        obj.rotation += this.mr;
                     }
                 }else if(this.ccw){
-                    if(this.obj.rotation-this.mr<-3.14){
-                        this.obj.rotation = 3.14-(this.obj.rotation-this.mr+3.14);
+                    if(obj.rotation-this.mr<-3.14){
+                        obj.rotation = 3.14-(obj.rotation-this.mr+3.14);
                     }else{
-                        this.obj.rotation -= this.mr;
+                        obj.rotation -= this.mr;
                     }
                 }else{
                     if(this.dr<0){
-                        this.obj.rotation += this.mr;
+                        obj.rotation += this.mr;
                     }else if(this.dr>0){
-                        this.obj.rotation -= this.mr;
+                        obj.rotation -= this.mr;
                     }
                 }
                 break;
         };
+        if(obj.shadow){
+            obj.shadowImage.x = obj.x-obj.radius+obj.shadow.spread;
+            obj.shadowImage.y = obj.y-obj.radius+obj.shadow.spread;
+        }
     }
     this.update = function(){
         if(this.count>0){
@@ -113,6 +117,7 @@ Tween = function(obj,id,data,time,slow){
 Hero = function(data){
     var obj = heroes.create(data.x, data.y, 'hero');
     obj.id = data.id;
+    obj.radius = data.radius;
     obj.scale.set(data.scale);
     obj.anchor.setTo(0.5, 0.5);
     obj.animations.add('hit');
@@ -143,6 +148,9 @@ Hero = function(data){
     }
     obj.hit = function(){
         obj.animations.play('hit', 10, false);
+        emitter.x = obj.x;
+        emitter.y = obj.y;
+        emitter.start(true, 300, null, 5);
     }
 
     obj.live = function(data){
@@ -152,9 +160,15 @@ Hero = function(data){
         if(data.action.hit){
             obj.hit();
         }
+        if(data.action.left){
+            obj.destroy();
+            obj.weapon.destroy();
+            obj.shadowImage.destroy();
+            delete creatures[obj.id];
+        }
         new Tween(obj, obj.id, {rotation:data.rotation, x:data.x, y:data.y}, 10);
         new Tween(obj.weapon, obj.id+'w', {rotation:data.rotation, x:data.x, y:data.y}, 10, true);
-        new Tween(obj.shadowImage, obj.id+'s', {x:data.x-data.radius+obj.shadow.spread, y:data.y-data.radius+obj.shadow.spread}, 10);
+        //new Tween(obj.shadowImage, obj.id+'s', {x:data.x-data.radius+obj.shadow.spread, y:data.y-data.radius+obj.shadow.spread}, 10);
     }
     creatures[data.id] = obj;
     return obj;
@@ -167,6 +181,7 @@ Player = function(data){
 Zombie = function(data){
 var obj = zombies.create(data.x, data.y, 'zombie');
     obj.id = data.id;
+    obj.radius = data.radius;
     obj.scale.set(data.scale);
     obj.anchor.setTo(0.5, 0.5);
     obj.animations.add('hit');
@@ -190,6 +205,9 @@ var obj = zombies.create(data.x, data.y, 'zombie');
 
     obj.hit = function(){
         obj.animations.play('hit', 10, false);
+        emitter.x = obj.x;
+        emitter.y = obj.y;
+        emitter.start(true, 300, null, 5);
     }
 
     obj.live = function(data){
@@ -198,7 +216,7 @@ var obj = zombies.create(data.x, data.y, 'zombie');
         }
         new Tween(obj, obj.id, {rotation:data.rotation, x:data.x, y:data.y}, 10);
         new Tween(obj.weapon, obj.id+'w', {rotation:data.rotation, x:data.x, y:data.y}, 10, true);
-        new Tween(obj.shadowImage, obj.id+'s', {x:data.x-data.radius+obj.shadow.spread, y:data.y-data.radius+obj.shadow.spread}, 10);
+        //new Tween(obj.shadowImage, obj.id+'s', {x:data.x-data.radius+obj.shadow.spread, y:data.y-data.radius+obj.shadow.spread}, 10);
     }
     creatures[data.id] = obj;
     return obj;
