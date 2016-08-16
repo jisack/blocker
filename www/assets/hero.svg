@@ -2,29 +2,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="none" x="0px" y="0px" width="92px" height="46px" viewBox="0 0 92 46">
 <defs>
 <g id="Layer0_0_FILL">
-<path fill="#FFFFFF" stroke="none" d="
-M 87 10
-L 92 10 92 5 58.2 5 58.2 0 53 0 53 5 50 5 50 41.9 87 41.9 87 10 Z"/>
-</g>
-
-<g id="Symbol_2_0_Layer0_0_FILL">
-<path fill="#497CC4" stroke="none" d="
-M 3 5
-L 0 5 0 41.9 3 41.9 3 5 Z"/>
+<path fill="#EC6E5F" stroke="none" d="
+M 7 5
+L 4 5 4 41.9 7 41.9 7 5 Z"/>
 
 <path fill="#917E76" stroke="none" d="
-M 42 10
-L 42 5 8.2 5 8.2 0 3 0 3 5 3 41.9 37 41.9 37 10 42 10 Z"/>
+M 46 10
+L 46 5 12.2 5 12.2 0 7 0 7 5 7 41.9 41 41.9 41 10 46 10 Z"/>
+
+<path fill="#FFFFFF" stroke="none" d="
+M 87 41.9
+L 87 10 92 10 92 5 58.2 5 58.2 0 53 0 53 5 50 5 50 41.9 87 41.9 Z"/>
 </g>
 </defs>
 
 <g transform="matrix( 1, 0, 0, 1, 0,0) ">
 <use xlink:href="#Layer0_0_FILL"/>
-</g>
-
-<g transform="matrix( 1, 0, 0, 1, 4,0) ">
-<g transform="matrix( 1, 0, 0, 1, 0,0) ">
-<use xlink:href="#Symbol_2_0_Layer0_0_FILL"/>
-</g>
 </g>
 </svg>
