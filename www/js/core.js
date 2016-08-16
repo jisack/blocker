@@ -1,3 +1,8 @@
+var mobile = false;
+if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)){
+    mobile = true;
+}
+
 var game = new Phaser.Game('100%', '100%', Phaser.CANVAS, 'RPG', { preload: preload, create: create, update: update, render: render});
 
 function preload(){
@@ -21,7 +26,7 @@ function preload(){
     game.load.spritesheet('sword', 'assets/weapons/sword.svg',160,160);
 
     game.scale.scaleMode = Phaser.ScaleManager.RESIZE;
-    game.scale.setResizeCallback(function() {
+    game.scale.setResizeCallback(function(){
         game.scale.setMaximum();
     });
 }
@@ -61,10 +66,12 @@ function controllerRotation(){
 }
 
 function updateUI(){
-    button.move.x = game.camera.x+20;
-    button.move.y = game.camera.y+window.innerHeight-100;
-    button.attack.x = game.camera.x+window.innerWidth-100;
-    button.attack.y = game.camera.y+window.innerHeight-100;
+    if(mobile){
+        button.move.x = game.camera.x+20;
+        button.move.y = game.camera.y+window.innerHeight-100;
+        button.attack.x = game.camera.x+window.innerWidth-100;
+        button.attack.y = game.camera.y+window.innerHeight-100;
+    }
 }
 
 function update(){
@@ -72,7 +79,7 @@ function update(){
         updateUI();
 
         if (game.input.activePointer.leftButton.isDown || game.input.pointer1.isDown){
-            var rad = controllerRotation();
+            var rad = (mobile? controllerRotation():playerRotation());
             if(rad){
                 player.rotation = rad;
                 ws.send(JSON.stringify({
@@ -130,17 +137,19 @@ function init(){
 
 //ui
 function ui(){
-    button.move = game.add.sprite(game.camera.x, game.camera.y+window.innerHeight-256, 'move');
-    button.attack = game.add.button(game.camera.x+window.innerWidth-256, game.camera.y+window.innerHeight-256, 'attack', function(){
-        ws.send(JSON.stringify({
-            status: 'attack',
-            id: player.id,
-            rotation: player.rotation
-        }));
-    }, this, 2, 1, 0);
+    if(mobile){
+        button.move = game.add.sprite(game.camera.x, game.camera.y+window.innerHeight-256, 'move');
+        button.attack = game.add.button(game.camera.x+window.innerWidth-256, game.camera.y+window.innerHeight-256, 'attack', function(){
+            ws.send(JSON.stringify({
+                status: 'attack',
+                id: player.id,
+                rotation: player.rotation
+            }));
+        }, this, 2, 1, 0);
 
-    button.move.scale.setTo(2, 2);
-    button.attack.scale.setTo(2, 2);
+        button.move.scale.setTo(2, 2);
+        button.attack.scale.setTo(2, 2);
+    }
 }
 
 //update map
@@ -187,3 +196,7 @@ var map = {
         }
     }
 };
+
+window.onresize = function(){
+    console.log(window.innerWidth+' '+window.innerHeight);
+}
