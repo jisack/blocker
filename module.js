@@ -75,12 +75,12 @@ Game.SPEED = 25;
 Game.JOB_WARRIOR = 1;
 Game.JOB_ARCHER = 2;
 
-Hero = function(ws,data){
+Hero = function(socket,data){
     var ctr = new Creature(map.randomX(),map.randomY());
     ctr.id = data.id;
     ctr.type = 'hero';
-    ctr.ws = ws;
-    ctr.ws.id = data.id;
+    ctr.socket = socket;
+    ctr.socket.user = data.id;
     ctr.name = data.name;
     ctr.kill = 0;
     ctr.assist = 0;
@@ -175,8 +175,8 @@ Monster = function(){
             ctr.time = Math.floor(Math.random()*30);
             ctr.rotation = (Math.random()*Math.PI)*(Math.random()<0.5 ? -1:1);
         }else{
-            ctr.x = ctr.x - Math.cos(ctr.rotation)*ctr.stat.spd;
-            ctr.y = ctr.y - Math.sin(ctr.rotation)*ctr.stat.spd;
+            ctr.x -= Math.cos(ctr.rotation)*ctr.stat.spd;
+            ctr.y -= Math.sin(ctr.rotation)*ctr.stat.spd;
             ctr.time--;
         }
 
@@ -232,31 +232,43 @@ Tree = function(x,y){
 Rock = function(x,y){
     var org = new Origin(x,y);
     org.type = 'rock';
+    org.width = 50;
+    org.height = 50;
     org.scale = (Math.random()*1)+0.5;
     org.shadow.scale = org.scale;
     org.shadow.spread *= org.scale;
     //org.radius *= org.scale;
-    //org.width = 40;
-    //org.height = 40;
     org.image = Math.floor(Math.random()*3);
 
     /*org.intersect = function(ctr){
-        var distX = Math.abs(ctr.x - org.x-org.width/2);
-        var distY = Math.abs(ctr.y - org.y-org.height/2);
+        var dx = Math.abs(ctr.x - org.x);
+        var dy = Math.abs(ctr.y - org.y);
 
-        if (distX > (org.width/2 + ctr.radius)) { return false; }
-        if (distY > (org.height/2 + ctr.radius)) { return false; }
+        if (dx > (org.width/2 + ctr.radius)) { return false; }
+        if (dy > (org.height/2 + ctr.radius)) { return false; }
 
-        if (distX <= (org.width/2)) { return true; } 
-        if (distY <= (org.height/2)) { return true; }
+        if (dx <= (org.width/2)) { return true; } 
+        if (dy <= (org.height/2)) { return true; }
 
-        var dx=distX-org.width/2;
-        var dy=distY-org.height/2;
-        return (dx*dx+dy*dy<=(ctr.radius*ctr.radius));
+        cornerDistance = Math.pow((dx - org.width/2),2) +
+                            Math.pow((dy - org.height/2),2);
+
+        return (cornerDistance <= Math.pow(ctr.radius,2));
     }
     org.collide = function(ctr){
         if(org.intersect(ctr)){
-            
+            var halfWidth = org.width/2;
+            var halfHeight = org.height/2;
+            if(ctr.x+ctr.radius > org.x-halfWidth && ctr.x+ctr.radius < org.x){
+                ctr.x = org.x-halfWidth-ctr.radius;
+            }else if(ctr.x-ctr.radius < org.x+halfWidth && ctr.x-ctr.radius > org.x){
+                ctr.x = org.x+halfWidth+ctr.radius;
+            }
+            if(ctr.y+ctr.radius > org.y-halfWidth && ctr.y+ctr.radius < org.y){
+                ctr.y = org.y-halfWidth-ctr.radius;
+            }else if(ctr.y-ctr.radius < org.y+halfWidth && ctr.y-ctr.radius > org.y){
+                ctr.y = org.y+halfWidth+ctr.radius;
+            }
         }
     }*/
     map.obstacles[org.id] = org;

@@ -2,46 +2,49 @@ var fs = require('fs');
 var express = require('express');
 app = express();
 
-var bodyParser = require('body-parser');
-app.use(bodyParser.json({}));
+//var bodyParser = require('body-parser');
+//app.use(bodyParser.json({}));
 
 app.use(express.static('phaser/www'));
-app.listen(8000);
+var server = app.listen(8000);
 
 process.on('uncaughtException', function (err) {
 	console.log('Caught ' + err.stack);
 });
 
-var WebSocketServer = require('ws').Server;
+/*var WebSocketServer = require('ws').Server;
 var wss;
 var port = 8888;
-wss = new WebSocketServer({port: port});
+wss = new WebSocketServer({port: port});*/
+
+var io = require('socket.io').listen(server, { log:false });
+
 var users = {};
 
 //constant
 Server = {};
 Server.TICK = 100;
 
-//websocket handling
-function send(ws,data){
+//socket handling
+function send(socket,data){
     try{
-        ws.send(JSON.stringify(data));
+        socket.emit('message',JSON.stringify(data));
     }catch(e){
         console.log(e);
-        leave(ws);
+        leave(socket);
     }
 }
-function join(ws,data){
+function join(socket,data){
     if(users[data.id]){
 
     }else{
-        users[data.id] = new Hero(ws,data);
+        users[data.id] = new Hero(socket,data);
     }
     var mapData = [];
     for(var i in map.obstacles){
         mapData.push(map.obstacles[i].getData());
     }
-    send(ws,{
+    send(socket,{
         status: 'init',
         data: mapData,
         player: users[data.id].getData()
@@ -60,25 +63,25 @@ function attack(data){
     hero.rotation = data.rotation;
     hero.attack();
 }
-function leave(ws){
+function leave(socket){
    /* for(var i in users){
-        if(users[i].ws==ws){
+        if(users[i].socket==socket){
             users[i].hp = 0;
             map.creatures.splice(i,1);
             delete users[i];
             break;
         }
     }*/
-    var id = ws.id;
+    var id = socket.user;
     users[id].action.left = true;
 }
 
-wss.on('connection', function(ws) {
-	ws.on('message', function(e) {
+io.on('connection', function(socket) {
+	socket.on('message', function(e) {
         var data = JSON.parse(e);
         switch(data.status){
             case 'join':
-                join(ws,data);
+                join(socket,data);
                 break;
             case 'move':
                 move(data);
@@ -88,11 +91,11 @@ wss.on('connection', function(ws) {
                 break;
         }
     });
-    ws.on('error',function(){
-        leave(ws);
+    socket.on('error',function(){
+        leave(socket);
     });
-    ws.on('close',function(){
-        leave(ws);
+    socket.on('disconnect',function(){
+        leave(socket);
     });
 });
 
@@ -121,7 +124,7 @@ function getCreatures(){
 function update(){
     var data = getCreatures();
     for(var i in users){
-        send(users[i].ws,{
+        send(users[i].socket,{
             status: 'update',
             data: data
         });

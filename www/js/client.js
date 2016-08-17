@@ -5,11 +5,15 @@ function uuid(){
 	return s4()+s4()+'-'+s4()+'-'+s4()+'-'+s4()+'-'+s4()+s4()+s4();
 }
 
-var ws;
+var socket;
+
+function send(data){
+    socket.emit('message',JSON.stringify(data));
+}
 
 function client(){
-    ws.onmessage = function(e){
-        var data = JSON.parse(e.data);
+    socket.on('message', function(e){
+        var data = JSON.parse(e);
 
         switch(data.status){
             case 'init':
@@ -23,27 +27,27 @@ function client(){
                 delete creatures[data.id];
                 break;
         }
-    }
+    });
 
-    ws.onopen = function(e){
+    socket.on('connect', function(e){
         init();
-        ws.send(JSON.stringify({
+        socket.emit('message',JSON.stringify({
             status:'join',
             id:playId,
             name:'Unknown'
         }));
         console.log('Connected');
-    }
+    });
 
-    ws.onerror = function(e){
+    socket.on('error', function(e){
         console.log('Error: '+e);
-    }
+    });
 
-    ws.onclose = function(e){
+    socket.on('disconnected', function(e){
         console.log('Disconnected');
-    }
+    });
 }
 
-window.onunload = function(e){
-    ws.close();
+window.onbeforeunload = function(e){
+    socket.disconnect();
 }

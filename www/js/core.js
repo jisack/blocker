@@ -32,7 +32,7 @@ function preload(){
 }
 
 function create(){
-    ws = new WebSocket('ws://'+location.hostname+':8888');
+    socket = io.connect('http://'+location.hostname+':8000');//new WebSocket('ws://'+location.hostname+':8888');
     client();
 
     //mouse
@@ -82,21 +82,21 @@ function update(){
             var rad = (mobile? controllerRotation():playerRotation());
             if(rad){
                 player.rotation = rad;
-                ws.send(JSON.stringify({
+                send({
                     status: 'move',
                     id: player.id,
                     rotation: rad
-                }));
+                });
             }
         }
         if (game.input.activePointer.rightButton.isDown){
             var rad = playerRotation();
             player.rotation = rad;
-            ws.send(JSON.stringify({
+            send({
                 status: 'attack',
                 id: player.id,
                 rotation: rad
-            }));
+            });
         }
 
         //tween motion
@@ -196,7 +196,3 @@ var map = {
         }
     }
 };
-
-window.onresize = function(){
-    console.log(window.innerWidth+' '+window.innerHeight);
-}
