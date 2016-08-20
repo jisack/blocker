@@ -1,4 +1,124 @@
+@import 'https://fonts.googleapis.com/css?family=Montserrat';
+
+*::-moz-focus-inner, *::-moz-focus-inner{
+	border:0;
+}
+*{  
+    font-family:'Montserrat';
+    font-size:14px;
+    outline:0;
+    -webkit-user-select: none;  
+    -moz-user-select: none;    
+    -ms-user-select: none;      
+    user-select: none;
+}
+
 html,body{
     margin:0;
     padding:0;
+}
+
+#logo{
+    width:300px;
+    height:100px;
+    margin:-30px auto 0 auto;
+    background:url(assets/logo.svg) no-repeat center;
+}
+.container{
+    position:absolute;
+}
+
+.left,.right{
+    position:relative;
+    vertical-align:middle;
+    color:#fff;
+}
+/*.left:before{
+    position:absolute;
+    top:10px;left:10px;
+    content:'Enter Name :';
+}*/
+.right:before{
+    position:absolute;
+    top:10px;left:10px;
+    content:'Choose Hero :';
+}
+.right{
+    text-align:right;
+    color:rgba(0,0,0,0.5);
+    margin-left:20px;
+    padding:15px;
+    background:rgba(255,255,255,0.6);
+    border-radius:5px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.1); 
+}
+
+input{
+    text-align:center;
+    margin:10px 0;
+    padding:15px;
+    color:#fff;
+    background:rgba(0,0,0,0.4);
+    border-radius:4px;
+    outline:0;
+    border:0;
+    -webkit-user-select: text;  
+    -moz-user-select: text;    
+    -ms-user-select: text;      
+    user-select: text;
+}
+.play{
+    font-size:24px;
+    display:block;
+    margin:10px auto;
+    padding:12px 30px;
+    color:#fff;
+    background:transparent;
+    border:2px solid #fff;
+    border-radius: 4px;
+}
+.play:hover{
+    color:#4EC258;
+    background:#fff;
+    cursor:pointer;
+}
+.play[disabled]{
+    opacity:0.25;
+}
+
+.top button{
+    width:30px;
+    height:30px;
+    margin-left:8px;
+    padding:0;
+    outline:0;
+    border:0;
+    border:5px solid transparent;
+    border-radius:50%;
+    cursor:pointer;
+}
+.top button.selected{
+    border:5px solid #fff;
+}
+
+.selector img{
+    vertical-align:middle;
+    width:256px;
+    height:256px;
+    margin:-80px -40px -30px -40px;
+    pointer-events:none;
+}
+.selector button{
+    vertical-align:middle;
+    width:30px;
+    height:100px;
+    outline:0;
+    border:0;
+    cursor:pointer;
+}
+.ui-left{
+    background:url(assets/ui/left.svg) no-repeat center;
+}
+.ui-right{
+    background:url(assets/ui/right.svg) no-repeat center;
 }

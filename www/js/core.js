@@ -3,7 +3,7 @@ if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigat
     mobile = true;
 }
 
-var game = new Phaser.Game('100%', '100%', Phaser.CANVAS, 'RPG', { preload: preload, create: create, update: update, render: render});
+var game = new Phaser.Game('100%', '100%', Phaser.AUTO, 'Blocker', { preload: preload, create: create, update: update, render: render}, false, false);
 
 function preload(){
     //textures
@@ -11,6 +11,7 @@ function preload(){
     game.load.image('shadow', 'assets/shadow.svg');
     game.load.image('rock', 'assets/rock.svg');
     game.load.image('tree', 'assets/tree.svg');
+    game.load.spritesheet('tower', 'assets/tower.svg',80,80);
     
     //ui
     game.load.image('move', 'assets/ui/move.svg');
@@ -22,15 +23,23 @@ function preload(){
     //creatures
     game.load.spritesheet('zombie', 'assets/zombie.svg',46,46);
     game.load.image('hands', 'assets/weapons/hands.svg');
-    game.load.spritesheet('hero', 'assets/hero.svg',46,46);
+
+    game.load.spritesheet('Awarrior', 'assets/A/warrior.svg',46,46);
+    game.load.spritesheet('Aarcher', 'assets/A/archer.svg',46,46);
+    game.load.spritesheet('Bwarrior', 'assets/B/warrior.svg',46,46);
+    game.load.spritesheet('Barcher', 'assets/B/archer.svg',46,46);
     game.load.spritesheet('sword', 'assets/weapons/sword.svg',160,160);
 
     game.scale.scaleMode = Phaser.ScaleManager.RESIZE;
     game.scale.setResizeCallback(function(){
         game.scale.setMaximum();
+        
+        ui.current.style.left = (window.innerWidth/2)-(ui.current.offsetWidth/2)+'px';
+        ui.current.style.top = (window.innerHeight/2)-(ui.current.offsetHeight/2)+'px';
     });
 }
 
+var size = 4000;
 function create(){
     socket = io.connect('http://'+location.hostname+':8000');//new WebSocket('ws://'+location.hostname+':8888');
     client();
@@ -40,11 +49,14 @@ function create(){
     game.input.mouse.capture = true;
 
     game.stage.disableVisibilityChange = true;
-    game.world.setBounds(0, 0, 2000, 2000);
+    game.world.setBounds(0, 0, size, size);
 
-    game.physics.startSystem(Phaser.Physics.ARCADE);
+    //game.physics.startSystem(Phaser.Physics.ARCADE);
 
-    field = game.add.tileSprite(0,0,2000,2000,'bg');
+    field = game.add.tileSprite(0,0,size,size,'bg');
+
+    game.camera.x = size-window.innerWidth/2;
+    game.camera.y = size-window.innerHeight/2;
 }
 
 function playerRotation(){
@@ -74,29 +86,35 @@ function updateUI(){
     }
 }
 
+var lastMove = 0;
 function update(){
     if(map.ready){
-        updateUI();
+        if(player){
+            updateUI();
 
-        if (game.input.activePointer.leftButton.isDown || game.input.pointer1.isDown){
-            var rad = (mobile? controllerRotation():playerRotation());
-            if(rad){
+            if (game.input.activePointer.leftButton.isDown || game.input.pointer1.isDown){
+                var rad = (mobile? controllerRotation():playerRotation());
+                var now = Date.now();
+                player.rotation = rad;
+
+                if(rad&& now-lastMove>50){
+                    send({
+                        status: 'move',
+                        id: player.id,
+                        rotation: rad
+                    });
+                    lastMove = now;
+                }
+            }
+            if (game.input.activePointer.rightButton.isDown){
+                var rad = playerRotation();
                 player.rotation = rad;
                 send({
-                    status: 'move',
+                    status: 'attack',
                     id: player.id,
                     rotation: rad
                 });
             }
-        }
-        if (game.input.activePointer.rightButton.isDown){
-            var rad = playerRotation();
-            player.rotation = rad;
-            send({
-                status: 'attack',
-                id: player.id,
-                rotation: rad
-            });
         }
 
         //tween motion
@@ -111,44 +129,45 @@ function render(){
 }
 
 //Initial
-var field,player,shadows,shadows2,zombies,heroes,trees,rocks,weapons;
+var field,player,zones,shadows,shadows2,shadows3,names,zombies,heroes,trees,rocks,towers,weapons,effects;
 var playId,creatures = {};
 var button = {};
 
 function init(){
+    zones = game.add.group();
     weapons = game.add.group();
     shadows = game.add.group();
 
     zombies = game.add.group();
     heroes = game.add.group();
+    names = game.add.group();
 
     shadows2 = game.add.group();
     rocks = game.add.group();
     trees = game.add.group();
+    shadows3 = game.add.group();
+    towers = game.add.group();
 
+    effects = game.add.group();
     emitter = game.add.emitter(-100,-100,5);
     emitter.makeParticles('flake');
     emitter.gravity = 100;
 
     playId = localStorage.getItem('uuid')||uuid();
     localStorage.setItem('uuid',playId);
-    ui();
 }
 
 //ui
-function ui(){
+function mobileUI(){
     if(mobile){
         button.move = game.add.sprite(game.camera.x, game.camera.y+window.innerHeight-256, 'move');
         button.attack = game.add.button(game.camera.x+window.innerWidth-256, game.camera.y+window.innerHeight-256, 'attack', function(){
-            ws.send(JSON.stringify({
+            send({
                 status: 'attack',
                 id: player.id,
                 rotation: player.rotation
-            }));
+            });
         }, this, 2, 1, 0);
-
-        button.move.scale.setTo(2, 2);
-        button.attack.scale.setTo(2, 2);
     }
 }
 
@@ -164,13 +183,21 @@ var map = {
                 case 'rock':
                     new Rock(e.data[i],e.data[i].type);
                     break;
+                case 'tower':
+                    new Tower(e.data[i],e.data[i].type);
+                    break;
             }
         }
-
+        map.ready = true;
+    },
+    play: function(e){
         //new player
+        localStorage.setItem('name',ui.current.name.value);
         player = new Player(e.player);
         game.camera.follow(player);
-        map.ready = true;
+        body.removeChild(ui.current);
+        
+        mobileUI();
     },
     //creatures
     update: function(data){
@@ -191,6 +218,9 @@ var map = {
                     }else{
                         new Zombie(data[i]);
                     }
+                    break;
+                default:
+                    obj.live(data[i]);
                     break;
             }
         }

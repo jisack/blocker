@@ -1,4 +1,11 @@
 //functions
+function clear(e){
+	if(e){
+		while(e.firstChild){
+			e.removeChild(e.firstChild);
+		}
+	}
+}
 function pointToPoint(v1,v2){
     return Math.atan2(v1.y-v2.y,v1.x-v2.x);
 }
@@ -100,6 +107,10 @@ Tween = function(obj,id,data,time,slow){
             obj.shadowImage.x = obj.x-obj.radius+obj.shadow.spread;
             obj.shadowImage.y = obj.y-obj.radius+obj.shadow.spread;
         }
+        if(obj.game){
+            obj.name.x = obj.x;
+            obj.name.y = obj.y-obj.radius-obj.radius/4;
+        }
     }
     this.update = function(){
         if(this.count>0){
@@ -114,8 +125,13 @@ Tween = function(obj,id,data,time,slow){
     tweens[this.id] = this;
 }
 
+//constant
+Game = {};
+Game.style = {font:"13px Montserrat", fill:"#fff", wordWrap:true, wordWrapWidth:null, align:"center"};
+Game.health = ['#FF0000','#FF3333','#FF6666','#FF9999','#FFCCCC','#fff'];
+
 Hero = function(data){
-    var obj = heroes.create(data.x, data.y, 'hero');
+    var obj = heroes.create(data.x, data.y, data.team+data.job);
     obj.id = data.id;
     obj.radius = data.radius;
     obj.scale.set(data.scale);
@@ -124,6 +140,20 @@ Hero = function(data){
     obj.events.onAnimationComplete.add(function(){
         obj.frame = 0;
     });
+    //stat
+    obj.hp = data.hp;
+
+    //name
+    obj.setName = function(){
+        if(obj.name) names.remove(obj.name);
+        var style = Game.style;
+        style.fill = Game.health[obj.hp];
+        style.wordWrapWidth = obj.width;
+        obj.name = game.add.text(data.x-data.radius, data.y-data.radius, data.name, style);
+        obj.name.anchor.set(0.5);
+        names.add(obj.name);
+    }
+    obj.setName();
 
     obj.shadow = {
         scale: data.shadow.scale,
@@ -148,12 +178,16 @@ Hero = function(data){
     }
     obj.hit = function(){
         obj.animations.play('hit', 10, false);
-        emitter.x = obj.x;
+        /*emitter.x = obj.x;
         emitter.y = obj.y;
-        emitter.start(true, 300, null, 5);
+        emitter.start(true, 300, null, 5);*/
     }
 
     obj.live = function(data){
+        if(obj.hp!=data.hp){
+            obj.hp = data.hp;
+            obj.setName();
+        }
         if(data.action.attack){
             obj.attack();
         }
@@ -205,9 +239,6 @@ var obj = zombies.create(data.x, data.y, 'zombie');
 
     obj.hit = function(){
         obj.animations.play('hit', 10, false);
-        emitter.x = obj.x;
-        emitter.y = obj.y;
-        emitter.start(true, 300, null, 5);
     }
 
     obj.live = function(data){
@@ -224,7 +255,7 @@ var obj = zombies.create(data.x, data.y, 'zombie');
 Tree = function(data,type){
     var obj = trees.create(data.x, data.y, type);
     obj.rotation = data.rotation;
-    obj.scale.set(data.scale);
+    obj.scale.set(data.scale/2);
     obj.anchor.setTo(0.5, 0.5);
     obj.shadow = {
         scale: data.shadow.scale,
@@ -253,3 +284,185 @@ Rock = function(data,type){
     obj.shadowImage.scale.set(data.shadow.scale);
     return obj;
 }
+Tower = function(data,type){
+    var obj = towers.create(data.x, data.y, type);
+    //obj.rotation = data.rotation;
+    obj.scale.set(data.scale/2);
+    obj.anchor.setTo(0.5, 0.5);
+
+    obj.team = data.team;
+    obj.animations.add('none',[0],1,false);
+    obj.animations.add('A',[1],1,false);
+    obj.animations.add('B',[2],1,false);
+    obj.play(data.team);
+
+    //zoning
+    obj.zone = game.add.graphics(data.x, data.y);
+    obj.zone.beginFill(0x36BB8B, 0.1);
+    obj.zone.drawCircle(0,0,data.zone);
+    zones.add(obj.zone);
+
+    obj.shadow = {
+        scale: data.shadow.scale,
+        spread: data.shadow.spread
+    };
+    obj.shadowImage = shadows3.create(
+        data.x-data.radius+data.shadow.spread,
+        data.y-data.radius+data.shadow.spread,
+        'shadow');
+    obj.shadowImage.scale.set(data.shadow.scale);
+
+    obj.live = function(data){
+        if(obj.team!=data.team){
+            obj.play(data.team);
+        }
+    }
+    creatures[data.id] = obj;
+    return obj;
+}
+
+//UI
+Selector = function(data){
+    var div = document.createElement('div');
+    div.className = 'selector';
+
+    div.i = 1;
+    div.list = [];
+    div.left = document.createElement('button');
+    div.left.className = 'ui-left';
+    div.appendChild(div.left);
+    //jobs
+    for(var i in data){
+        var img = document.createElement('img');
+        img.src = 'assets/'+ui.team+'/model.'+data[i]+'.png';
+        img.data = data[i];
+        div.list.push(img);
+        div.appendChild(img);
+    }
+    div.right = document.createElement('button');
+    div.right.className = 'ui-right';
+    div.appendChild(div.right);
+
+    div.clear = function(){
+        for(var i in div.list){
+            div.list[i].style.display = 'none';
+        }
+        var img = div.list[div.i];
+        img.style.display = 'inline-block';
+        ui.job = img.data;
+        img.src = 'assets/'+ui.team+'/model.'+ui.job+'.png';
+        div.current = img;
+        ui.playable();
+    }
+    div.left.onclick = function(){
+        div.i = (div.i-1>=0 ? div.i-1:div.list.length-1);
+        div.clear();
+    }
+    div.right.onclick = function(){
+        div.i = (div.i+1>div.list.length-1 ? 0:div.i+1);
+        div.clear();
+    }
+
+    div.left.click();
+    return div;
+}
+Container = function(){
+    var div = document.createElement('div');
+    div.className = 'container';
+    return div;
+}
+StartUI = function(){
+    var div = new Container();
+    div.logo = document.createElement('div');
+    div.logo.id = 'logo';
+
+    div.left = document.createElement('div');
+    div.left.className = 'left';
+    div.left.style.display = 'inline-block';
+    div.right = document.createElement('div');
+    div.right.className = 'right';
+    div.right.style.display = 'inline-block';
+    div.top = document.createElement('div');
+    div.top.className = 'top';
+
+    div.name = document.createElement('input');
+    div.name.maxLength = 8;
+    div.name.placeholder = 'Enter Name';
+    div.name.value = localStorage.getItem('name')||'';
+    div.name.onkeyup = function(){
+        ui.playable();
+    }
+    div.play = document.createElement('button');
+    div.play.className = 'play';
+    div.play.textContent = 'Play';
+    div.play.onclick = function(){
+        socket.emit('message',JSON.stringify({
+            status: 'join',
+            id: playId,
+            name: div.name.value,
+            team: ui.team,
+            job: ui.job
+        }));
+    }
+
+    div.red = document.createElement('button');
+    div.red.className = 'selected';
+    div.red.style.background = '#DE4330';
+    div.red.onclick = function(){
+        ui.team = 'A';
+        div.selector.current.src = 'assets/'+ui.team+'/model.'+ui.job+'.png';
+        div.red.className = 'selected';
+        div.blue.className = '';
+        ui.playable();
+    }
+    div.blue = document.createElement('button');
+    div.blue.style.background = '#2960AD';
+    div.blue.onclick = function(){
+        ui.team = 'B';
+        div.selector.current.src = 'assets/'+ui.team+'/model.'+ui.job+'.png';
+        div.red.className = '';
+        div.blue.className = 'selected';
+        ui.playable();
+    }
+    div.top.appendChild(div.red);
+    div.top.appendChild(div.blue);
+
+    div.selector = new Selector(['warrior','archer']);
+
+    div.left.appendChild(div.name);
+    div.left.appendChild(div.play);
+    div.right.appendChild(div.top);
+    div.right.appendChild(div.selector);
+    div.appendChild(div.logo);
+    div.appendChild(div.left);
+    div.appendChild(div.right);
+    return div;
+}
+
+var body = document.body||document.documentElement;
+var ui = {
+    playable: function(){
+        if(ui.current){
+            /*if(ui.job=='archer'){
+                ui.current.play.disabled = true;
+            }else */if(ui.current.name.value==''){
+                ui.current.play.disabled = true;
+            }else{
+                ui.current.play.disabled = false;
+            }
+        }
+    },
+    start: function(){
+        var team = ['A','B'];
+        ui.team = team[Math.floor(Math.random()*2)];
+        ui.job = 'warrior';
+        ui.current = new StartUI();
+        body.appendChild(ui.current);
+        //default
+        if(ui.team=='B'){
+            ui.current.blue.click();
+        }
+        ui.current.name.focus();
+    },
+};
+ui.start();

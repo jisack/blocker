@@ -66,6 +66,8 @@ Creature = function(x,y){
         atk: 1,
         spd: Game.SPEED
     };
+    org.zone = 500;
+
     return org;
 }
 
@@ -82,10 +84,15 @@ Hero = function(socket,data){
     ctr.socket = socket;
     ctr.socket.user = data.id;
     ctr.name = data.name;
+    ctr.team = data.team;
+    ctr.job = data.job;
+
     ctr.kill = 0;
     ctr.assist = 0;
-    ctr.job = Game.JOB_WARRIOR;
     ctr.action = {};
+
+    ctr.deadTick = 0;
+    ctr.deadTime = 10;
 
     ctr.attack = function(){
         if(ctr.stat.sp>=10){
@@ -102,6 +109,7 @@ Hero = function(socket,data){
                     if(40+e.radius > dist){
                         e.x = e.x - dx*2;
                         e.y = e.y - dy*2;
+                        e.stat.hp--;
                         e.action.hit = true;
                     }
                 }
@@ -134,7 +142,8 @@ Hero = function(socket,data){
 
         //stat
         if(ctr.stat.hp<=0){
-
+            ctr.stat.hp = 0;
+            
         }
         if(ctr.stat.sp<ctr.stat.msp){
             ctr.stat.sp++;
@@ -154,6 +163,11 @@ Hero = function(socket,data){
     }
     ctr.getData = function(){
         var data = ctr.data();
+        data.name = ctr.name;
+        data.team = ctr.team;
+        data.job = ctr.job;
+        //stat
+        data.hp = ctr.stat.hp;
         data.action = ctr.action;
         if(ctr.action.left) ctr.clear();
         return data;
@@ -239,8 +253,23 @@ Rock = function(x,y){
     org.shadow.spread *= org.scale;
     //org.radius *= org.scale;
     org.image = Math.floor(Math.random()*3);
+    
+    map.obstacles[org.id] = org;
+    return org;
+}
 
-    /*org.intersect = function(ctr){
+Tower = function(x,y){
+    var org = new Origin(x,y);
+    org.type = 'tower';
+    org.width = 90;
+    org.height = 90;
+    org.scale = 2.5;
+    org.shadow.scale = 3.1;
+    org.shadow.spread *= 2.5;
+    org.zone = 500;
+    org.team = 'A';
+
+    org.intersect = function(ctr){
         var dx = Math.abs(ctr.x - org.x);
         var dy = Math.abs(ctr.y - org.y);
 
@@ -270,15 +299,25 @@ Rock = function(x,y){
                 ctr.y = org.y+halfWidth+ctr.radius;
             }
         }
-    }*/
-    map.obstacles[org.id] = org;
+    }
+    org.update = function(){
+        
+    }
+
+    org.getData = function(){
+        var data = org.data();
+        data.zone = org.zone;
+        return data;
+    }
+
+    map.creatures[org.id] = org;
     return org;
 }
 
 //map
 var map = {
-    width: 2000,
-    height: 2000,
+    width: 4000,
+    height: 4000,
     randomX: function(){
         return Math.floor(Math.random()*map.width);
     },

@@ -19,6 +19,9 @@ function client(){
             case 'init':
                 map.init(data);
                 break;
+            case 'play':
+                map.play(data);
+                break;
             case 'update':
                 map.update(data.data);
                 break;
@@ -32,9 +35,7 @@ function client(){
     socket.on('connect', function(e){
         init();
         socket.emit('message',JSON.stringify({
-            status:'join',
-            id:playId,
-            name:'Unknown'
+            status:'load'
         }));
         console.log('Connected');
     });
@@ -43,7 +44,7 @@ function client(){
         console.log('Error: '+e);
     });
 
-    socket.on('disconnected', function(e){
+    socket.on('disconnect', function(e){
         console.log('Disconnected');
     });
 }
