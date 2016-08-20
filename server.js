@@ -161,6 +161,10 @@ function getCreatures(){
         map.creatures[i].update();
         data.push(map.creatures[i].getData());
     }
+    for(var i in map.towers){
+        map.towers[i].update();
+        data.push(map.towers[i].getData());
+    }
     return data;
 }
 function update(){

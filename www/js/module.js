@@ -252,8 +252,8 @@ var obj = zombies.create(data.x, data.y, 'zombie');
     creatures[data.id] = obj;
     return obj;
 }
-Tree = function(data,type){
-    var obj = trees.create(data.x, data.y, type);
+Tree = function(data){
+    var obj = trees.create(data.x, data.y, 'tree');
     obj.rotation = data.rotation;
     obj.scale.set(data.scale/2);
     obj.anchor.setTo(0.5, 0.5);
@@ -268,8 +268,8 @@ Tree = function(data,type){
     obj.shadowImage.scale.set(data.shadow.scale);
     return obj;
 }
-Rock = function(data,type){
-    var obj = rocks.create(data.x, data.y, type);
+Rock = function(data){
+    var obj = rocks.create(data.x, data.y, 'rock');
     obj.rotation = data.rotation;
     obj.scale.set(data.scale);
     obj.anchor.setTo(0.5, 0.5);
@@ -284,8 +284,8 @@ Rock = function(data,type){
     obj.shadowImage.scale.set(data.shadow.scale);
     return obj;
 }
-Tower = function(data,type){
-    var obj = towers.create(data.x, data.y, type);
+Tower = function(data){
+    var obj = towers.create(data.x, data.y, 'tower', 1);
     //obj.rotation = data.rotation;
     obj.scale.set(data.scale/2);
     obj.anchor.setTo(0.5, 0.5);
@@ -294,13 +294,17 @@ Tower = function(data,type){
     obj.animations.add('none',[0],1,false);
     obj.animations.add('A',[1],1,false);
     obj.animations.add('B',[2],1,false);
-    obj.play(data.team);
+    obj.animations.play(data.team);
 
     //zoning
     obj.zone = game.add.graphics(data.x, data.y);
-    obj.zone.beginFill(0x36BB8B, 0.1);
-    obj.zone.drawCircle(0,0,data.zone);
+    obj.zone.beginFill(0x36BB8B, 0.4);
+    obj.zone.drawCircle(0,0,1);
+    obj.zone.anchor.setTo(0.5, 0.5);
     zones.add(obj.zone);
+    game.add.tween(obj.zone).to({alpha:0}, 2000, Phaser.Easing.None, true, 1, 1, false).loop(true);
+    game.add.tween(obj.zone.scale).to({x:data.zone*2,y:data.zone*2}, 2000, Phaser.Easing.None, true, 1, 1, false).loop(true);
+    
 
     obj.shadow = {
         scale: data.shadow.scale,
@@ -314,7 +318,7 @@ Tower = function(data,type){
 
     obj.live = function(data){
         if(obj.team!=data.team){
-            obj.play(data.team);
+            obj.animations.play(data.team);
         }
     }
     creatures[data.id] = obj;

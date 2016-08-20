@@ -266,8 +266,8 @@ Tower = function(x,y){
     org.scale = 2.5;
     org.shadow.scale = 3.1;
     org.shadow.spread *= 2.5;
-    org.zone = 500;
-    org.team = 'A';
+    org.zone = 700;
+    org.team = 'none';
 
     org.intersect = function(ctr){
         var dx = Math.abs(ctr.x - org.x);
@@ -301,16 +301,37 @@ Tower = function(x,y){
         }
     }
     org.update = function(){
-        
+        var Ainvaded = false;
+        var Binvaded = false;
+        for(var i in map.creatures){
+            var ctr = map.creatures[i];
+            var dist = distance(ctr.x,ctr.y,org.x,org.y);
+            if(dist<org.zone){
+                if(ctr.team=='A'){
+                    Ainvaded = true;
+                    break;
+                }else if(ctr.team=='B'){
+                    Binvaded = true;
+                    break;
+                }
+            }
+        }
+        if((org.team=='none'||org.team=='B') &&Ainvaded &&!Binvaded){
+            org.team = 'A';
+        }else if((org.team=='none'||org.team=='A') &&!Ainvaded &&Binvaded){
+            org.team = 'B';
+        }
     }
 
     org.getData = function(){
         var data = org.data();
+        data.team = org.team;
         data.zone = org.zone;
         return data;
     }
 
-    map.creatures[org.id] = org;
+    map.towers[org.id] = org;
+    map.obstacles[org.id] = org;
     return org;
 }
 
@@ -324,6 +345,7 @@ var map = {
     randomY: function(){
         return Math.floor(Math.random()*map.height);
     },
+    towers: {},
     obstacles: {},
     creatures: {},
     collide: function(ctr){

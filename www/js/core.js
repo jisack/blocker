@@ -178,14 +178,14 @@ var map = {
         for(var i in e.data){
             switch(e.data[i].type){
                 case 'tree':
-                    new Tree(e.data[i],e.data[i].type);
+                    new Tree(e.data[i]);
                     break;
                 case 'rock':
-                    new Rock(e.data[i],e.data[i].type);
+                    new Rock(e.data[i]);
                     break;
-                case 'tower':
-                    new Tower(e.data[i],e.data[i].type);
-                    break;
+                /*case 'tower':
+                    new Tower(e.data[i]);
+                    break;*/
             }
         }
         map.ready = true;
@@ -204,24 +204,20 @@ var map = {
         for(var i in data){
             var obj = creatures[data[i].id];
 
-            switch(data[i].type){
-                case 'hero':
-                    if(obj){
-                        obj.live(data[i]);
-                    }else{
+            if(obj){
+                obj.live(data[i]);
+            }else{
+                switch(data[i].type){
+                    case 'hero':
                         new Hero(data[i]);
-                    }
-                    break;
-                case 'zombie':
-                    if(obj){
-                        obj.live(data[i]);
-                    }else{
+                        break;
+                    case 'zombie':
                         new Zombie(data[i]);
-                    }
-                    break;
-                default:
-                    obj.live(data[i]);
-                    break;
+                        break;
+                    case 'tower':
+                        new Tower(data[i]);
+                        break;
+                }
             }
         }
     }
