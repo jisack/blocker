@@ -127,9 +127,38 @@ Tween = function(obj,id,data,time,slow){
 
 //constant
 Game = {};
-Game.style = {font:"13px Montserrat", fill:"#fff", wordWrap:true, wordWrapWidth:null, align:"center"};
+Game.style = {font:"Montserrat", fill:"#fff", wordWrap:true, wordWrapWidth:null, align:"center"};
 Game.health = ['#FF0000','#FF3333','#FF6666','#FF9999','#FFCCCC','#fff'];
+Game.baseColor = {'none':'#FFFFFF', 'A':'#EE5A48', 'B':'#366EBB'};
+Game.baseCapture = {'none':'Decamp', 'A':'+ Base', 'B':'+ Base'};
+Game.jobWeapon = {'warrior':'sword', 'archer':'bow'};
 
+//Effects
+Hit = function(x,y){
+    var emitter = game.add.emitter(x,y,5);
+    emitter.makeParticles('flake');
+    emitter.gravity = 100;
+    emitter.start(true, 250, null, 5);
+    setTimeout(function(){
+        emitter.destroy();
+    },250);
+}
+Capture = function(x,y,width,team){
+    var style = Game.style;
+    style.fill = Game.baseColor[team];
+    style.wordWrapWidth = width;
+    style.fontSize = '18px';
+    style.fontWeight = 'bold';
+    var f = game.add.text(x, y, Game.baseCapture[team], style);
+    f.anchor.set(0.5);
+    var t = game.add.tween(f).to({y:y-50}, 2000, Phaser.Easing.Elastic.Out, true);
+
+    t.onComplete.add(function(){
+        f.destroy();
+    }, this);
+}
+
+//Creatures
 Hero = function(data){
     var obj = heroes.create(data.x, data.y, data.team+data.job);
     obj.id = data.id;
@@ -147,6 +176,7 @@ Hero = function(data){
     obj.setName = function(){
         if(obj.name) names.remove(obj.name);
         var style = Game.style;
+        style.fontSize = '13px';
         style.fill = Game.health[obj.hp];
         style.wordWrapWidth = obj.width;
         obj.name = game.add.text(data.x-data.radius, data.y-data.radius, data.name, style);
@@ -166,21 +196,19 @@ Hero = function(data){
     obj.shadowImage.scale.set(data.shadow.scale);
 
     //weapon
-    obj.weapon = weapons.create(data.x, data.y, 'sword');
+    obj.weapon = weapons.create(data.x, data.y, Game.jobWeapon[data.job]);
     obj.weapon.anchor.setTo(0.5, 0.5);
-    obj.weapon.animations.add('slash');
+    obj.weapon.animations.add('attack');
     obj.weapon.events.onAnimationComplete.add(function(){
         obj.weapon.frame = 0;
     });
 
     obj.attack = function(){
-        obj.weapon.animations.play('slash', 20, false);
+        obj.weapon.animations.play('attack', 20, false);
     }
     obj.hit = function(){
         obj.animations.play('hit', 10, false);
-        /*emitter.x = obj.x;
-        emitter.y = obj.y;
-        emitter.start(true, 300, null, 5);*/
+        new Hit(obj.x,obj.y);
     }
 
     obj.live = function(data){
@@ -196,6 +224,7 @@ Hero = function(data){
         }
         if(data.action.left){
             obj.destroy();
+            obj.name.destroy();
             obj.weapon.destroy();
             obj.shadowImage.destroy();
             delete creatures[obj.id];
@@ -213,7 +242,7 @@ Player = function(data){
 }
 
 Zombie = function(data){
-var obj = zombies.create(data.x, data.y, 'zombie');
+    var obj = zombies.create(data.x, data.y, 'zombie');
     obj.id = data.id;
     obj.radius = data.radius;
     obj.scale.set(data.scale);
@@ -239,6 +268,7 @@ var obj = zombies.create(data.x, data.y, 'zombie');
 
     obj.hit = function(){
         obj.animations.play('hit', 10, false);
+        new Hit(obj.x,obj.y);
     }
 
     obj.live = function(data){
@@ -252,6 +282,30 @@ var obj = zombies.create(data.x, data.y, 'zombie');
     creatures[data.id] = obj;
     return obj;
 }
+
+//Weapon
+Arrow = function(data){
+    var obj = shots.create(data.x, data.y, 'arrow');
+    obj.id = data.id;
+    obj.rotation = data.rotation;
+    obj.anchor.setTo(0.5, 0.5);
+
+    obj.clear = function(){
+        obj.destroy();
+        delete creatures[data.id];
+    }
+    obj.live = function(data){
+        new Tween(obj, obj.id, {x:data.x, y:data.y}, 10);
+    }
+    setTimeout(function(){
+        obj.clear();
+    },5000);
+
+    creatures[data.id] = obj;
+    return obj;
+}
+
+//Obstacles
 Tree = function(data){
     var obj = trees.create(data.x, data.y, 'tree');
     obj.rotation = data.rotation;
@@ -298,13 +352,12 @@ Tower = function(data){
 
     //zoning
     obj.zone = game.add.graphics(data.x, data.y);
-    obj.zone.beginFill(0x36BB8B, 0.4);
+    obj.zone.beginFill(0x36BF95, 0.4);
     obj.zone.drawCircle(0,0,1);
     obj.zone.anchor.setTo(0.5, 0.5);
     zones.add(obj.zone);
     game.add.tween(obj.zone).to({alpha:0}, 2000, Phaser.Easing.None, true, 1, 1, false).loop(true);
     game.add.tween(obj.zone.scale).to({x:data.zone*2,y:data.zone*2}, 2000, Phaser.Easing.None, true, 1, 1, false).loop(true);
-    
 
     obj.shadow = {
         scale: data.shadow.scale,
@@ -318,155 +371,11 @@ Tower = function(data){
 
     obj.live = function(data){
         if(obj.team!=data.team){
+            obj.team = data.team;
+            new Capture(obj.x, obj.y, obj.width, data.team);
             obj.animations.play(data.team);
         }
     }
     creatures[data.id] = obj;
     return obj;
 }
-
-//UI
-Selector = function(data){
-    var div = document.createElement('div');
-    div.className = 'selector';
-
-    div.i = 1;
-    div.list = [];
-    div.left = document.createElement('button');
-    div.left.className = 'ui-left';
-    div.appendChild(div.left);
-    //jobs
-    for(var i in data){
-        var img = document.createElement('img');
-        img.src = 'assets/'+ui.team+'/model.'+data[i]+'.png';
-        img.data = data[i];
-        div.list.push(img);
-        div.appendChild(img);
-    }
-    div.right = document.createElement('button');
-    div.right.className = 'ui-right';
-    div.appendChild(div.right);
-
-    div.clear = function(){
-        for(var i in div.list){
-            div.list[i].style.display = 'none';
-        }
-        var img = div.list[div.i];
-        img.style.display = 'inline-block';
-        ui.job = img.data;
-        img.src = 'assets/'+ui.team+'/model.'+ui.job+'.png';
-        div.current = img;
-        ui.playable();
-    }
-    div.left.onclick = function(){
-        div.i = (div.i-1>=0 ? div.i-1:div.list.length-1);
-        div.clear();
-    }
-    div.right.onclick = function(){
-        div.i = (div.i+1>div.list.length-1 ? 0:div.i+1);
-        div.clear();
-    }
-
-    div.left.click();
-    return div;
-}
-Container = function(){
-    var div = document.createElement('div');
-    div.className = 'container';
-    return div;
-}
-StartUI = function(){
-    var div = new Container();
-    div.logo = document.createElement('div');
-    div.logo.id = 'logo';
-
-    div.left = document.createElement('div');
-    div.left.className = 'left';
-    div.left.style.display = 'inline-block';
-    div.right = document.createElement('div');
-    div.right.className = 'right';
-    div.right.style.display = 'inline-block';
-    div.top = document.createElement('div');
-    div.top.className = 'top';
-
-    div.name = document.createElement('input');
-    div.name.maxLength = 8;
-    div.name.placeholder = 'Enter Name';
-    div.name.value = localStorage.getItem('name')||'';
-    div.name.onkeyup = function(){
-        ui.playable();
-    }
-    div.play = document.createElement('button');
-    div.play.className = 'play';
-    div.play.textContent = 'Play';
-    div.play.onclick = function(){
-        socket.emit('message',JSON.stringify({
-            status: 'join',
-            id: playId,
-            name: div.name.value,
-            team: ui.team,
-            job: ui.job
-        }));
-    }
-
-    div.red = document.createElement('button');
-    div.red.className = 'selected';
-    div.red.style.background = '#DE4330';
-    div.red.onclick = function(){
-        ui.team = 'A';
-        div.selector.current.src = 'assets/'+ui.team+'/model.'+ui.job+'.png';
-        div.red.className = 'selected';
-        div.blue.className = '';
-        ui.playable();
-    }
-    div.blue = document.createElement('button');
-    div.blue.style.background = '#2960AD';
-    div.blue.onclick = function(){
-        ui.team = 'B';
-        div.selector.current.src = 'assets/'+ui.team+'/model.'+ui.job+'.png';
-        div.red.className = '';
-        div.blue.className = 'selected';
-        ui.playable();
-    }
-    div.top.appendChild(div.red);
-    div.top.appendChild(div.blue);
-
-    div.selector = new Selector(['warrior','archer']);
-
-    div.left.appendChild(div.name);
-    div.left.appendChild(div.play);
-    div.right.appendChild(div.top);
-    div.right.appendChild(div.selector);
-    div.appendChild(div.logo);
-    div.appendChild(div.left);
-    div.appendChild(div.right);
-    return div;
-}
-
-var body = document.body||document.documentElement;
-var ui = {
-    playable: function(){
-        if(ui.current){
-            /*if(ui.job=='archer'){
-                ui.current.play.disabled = true;
-            }else */if(ui.current.name.value==''){
-                ui.current.play.disabled = true;
-            }else{
-                ui.current.play.disabled = false;
-            }
-        }
-    },
-    start: function(){
-        var team = ['A','B'];
-        ui.team = team[Math.floor(Math.random()*2)];
-        ui.job = 'warrior';
-        ui.current = new StartUI();
-        body.appendChild(ui.current);
-        //default
-        if(ui.team=='B'){
-            ui.current.blue.click();
-        }
-        ui.current.name.focus();
-    },
-};
-ui.start();

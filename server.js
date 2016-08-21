@@ -79,9 +79,11 @@ function move(data){
     if(users[data.id]){
         var hero = users[data.id];
         hero.rotation = data.rotation;
+        hero.dx = Math.cos(data.rotation)*hero.stat.spd;
+        hero.dy = Math.sin(data.rotation)*hero.stat.spd;
         hero.move = {
-            x: hero.x - Math.cos(data.rotation)*hero.stat.spd,
-            y: hero.y - Math.sin(data.rotation)*hero.stat.spd
+            x: hero.x - hero.dx,
+            y: hero.y - hero.dy
         }
     }
 }
@@ -160,6 +162,10 @@ function getCreatures(){
     for(var i in map.creatures){
         map.creatures[i].update();
         data.push(map.creatures[i].getData());
+    }
+    for(var i in map.shots){
+        map.shots[i].update();
+        data.push(map.shots[i].getData());
     }
     for(var i in map.towers){
         map.towers[i].update();

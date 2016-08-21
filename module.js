@@ -44,15 +44,20 @@ Origin = function(x,y){
     this.getData = function(){
         return this.data();
     }
-    this.collide = function(ctr){
+    this.collide = function(ctr,disable){
         if(this!=ctr){
             var dist = distance(ctr.x,ctr.y,this.x,this.y);
             if(this.radius+ctr.radius > dist){
-                var normX = ((this.x+ctr.radius) - (ctr.x+this.radius)) / dist;
-                var normY = ((this.y+ctr.radius) - (ctr.y+this.radius)) / dist;
-                
-                ctr.x = (this.x+ctr.radius) - (normX*(this.radius+ctr.radius)) - this.radius;
-                ctr.y = (this.y+ctr.radius) - (normY*(this.radius+ctr.radius)) - this.radius;
+                if(!disable){
+                    var normX = ((this.x+ctr.radius) - (ctr.x+this.radius)) / dist;
+                    var normY = ((this.y+ctr.radius) - (ctr.y+this.radius)) / dist;
+                    
+                    ctr.x = (this.x+ctr.radius) - (normX*(this.radius+ctr.radius)) - this.radius;
+                    ctr.y = (this.y+ctr.radius) - (normY*(this.radius+ctr.radius)) - this.radius;
+                }
+                return true;
+            }else{
+                return false;
             }
         }
     }
@@ -76,9 +81,74 @@ Game = {};
 Game.SPEED = 25;
 Game.JOB_WARRIOR = 1;
 Game.JOB_ARCHER = 2;
+Game.JOB_MSP = {'warrior':10, 'archer':10};
+Game.JOB_ATTACK = {'warrior':10, 'archer':10};
+
+//weapons
+Arrow = function(data){
+    var org = new Origin(data.x,data.y);
+    org.owner = data.owner;
+    org.type = 'arrow';
+    org.damage = 1;
+    org.radius = 10;
+    org.rotation = data.rotation;
+    org.life = 10;
+
+    org.update = function(){
+        //moving
+        org.x -= Math.cos(org.rotation)*60;
+        org.y -= Math.sin(org.rotation)*60;
+
+        if(org.life>0){
+            if(map.collide(org)){
+                org.life = 0;
+            }
+            for(var i in map.creatures){
+                if(map.creatures[i].collide(org,true) && map.creatures[i].id!=org.owner){
+                    map.creatures[i].stat.hp -= org.damage;
+                    map.creatures[i].action.hit = true;
+                    org.life = 0;
+                    break;
+                }
+            }
+            for(var i in map.obstacles){
+                if(map.obstacles[i].collide(org,true)){
+                    org.life = 0;
+                    break;
+                }
+            }
+        }
+        org.life--;
+    }
+    org.clear = function(){
+        delete map.shots[org.id];
+    }
+    org.getData = function(){
+        var data = org.data();
+        data.life = org.life;
+        if(org.life<0) org.clear();
+        return data;
+    }
+
+    map.shots[org.id] = org;
+    return org;
+}
 
 Hero = function(socket,data){
-    var ctr = new Creature(map.randomX(),map.randomY());
+    //spawn at base
+    var towers = [];
+    var x = map.randomX();
+    var y = map.randomY()
+    for(var i in map.towers){
+        if(map.towers[i].team==data.team) towers.push(map.towers[i]);
+    }
+    if(towers.length>0){
+        var t = towers[Math.floor(Math.random()*towers.length)];
+        x = t.x;
+        y = t.y;
+    }
+
+    var ctr = new Creature(x,y);
     ctr.id = data.id;
     ctr.type = 'hero';
     ctr.socket = socket;
@@ -94,31 +164,48 @@ Hero = function(socket,data){
     ctr.deadTick = 0;
     ctr.deadTime = 10;
 
-    ctr.attack = function(){
-        if(ctr.stat.sp>=10){
-            ctr.stat.sp -= 10;
-            ctr.action.attack = true;
+    //job
+    ctr.stat.msp = Game.JOB_MSP[ctr.job];
 
-            function attack(e){
-                if(e!=ctr){
-                    var dx = Math.cos(ctr.rotation)*Game.SPEED;
-                    var dy = Math.sin(ctr.rotation)*Game.SPEED;
-                    var fx = ctr.x - dx;
-                    var fy = ctr.y - dy;
-                    var dist = distance(e.x,e.y,fx,fy);
-                    if(40+e.radius > dist){
-                        e.x = e.x - dx*2;
-                        e.y = e.y - dy*2;
-                        e.stat.hp--;
-                        e.action.hit = true;
+    ctr.attack = function(){
+        if(ctr.stat.sp>=Game.JOB_ATTACK[ctr.job]){
+            ctr.stat.sp -= Game.JOB_ATTACK[ctr.job];
+            ctr.action.attack = true;
+            
+            switch(ctr.job){
+                case 'warrior':
+                    function attack(e){
+                        if(e!=ctr){
+                            var dx = Math.cos(ctr.rotation)*Game.SPEED;
+                            var dy = Math.sin(ctr.rotation)*Game.SPEED;
+                            var fx = ctr.x - dx;
+                            var fy = ctr.y - dy;
+                            var dist = distance(e.x,e.y,fx,fy);
+                            if(40+e.radius > dist){
+                                e.dx = dx;
+                                e.dy = dy;
+                                e.x -= dx*2;
+                                e.y -= dy*2;
+                                e.stat.hp--;
+                                e.action.hit = true;
+                            }
+                        }
                     }
-                }
-            }
-            for(var i in map.creatures){
-                attack(map.creatures[i]);
+                    for(var i in map.creatures){
+                        attack(map.creatures[i]);
+                    }
+                    break;
+
+                case 'archer':
+                    new Arrow({
+                        owner: ctr.id,
+                        x: ctr.x-ctr.radius,
+                        y: ctr.y-ctr.radius,
+                        rotation: ctr.rotation
+                    });
+                    break;
             }
         }
-        
     }
     ctr.defend = function(){
 
@@ -189,8 +276,10 @@ Monster = function(){
             ctr.time = Math.floor(Math.random()*30);
             ctr.rotation = (Math.random()*Math.PI)*(Math.random()<0.5 ? -1:1);
         }else{
-            ctr.x -= Math.cos(ctr.rotation)*ctr.stat.spd;
-            ctr.y -= Math.sin(ctr.rotation)*ctr.stat.spd;
+            ctr.dx = Math.cos(ctr.rotation)*ctr.stat.spd;
+            ctr.dy = Math.sin(ctr.rotation)*ctr.stat.spd;
+            ctr.x -= ctr.dx;
+            ctr.y -= ctr.dy;
             ctr.time--;
         }
 
@@ -266,7 +355,7 @@ Tower = function(x,y){
     org.scale = 2.5;
     org.shadow.scale = 3.1;
     org.shadow.spread *= 2.5;
-    org.zone = 700;
+    org.zone = 500;
     org.team = 'none';
 
     org.intersect = function(ctr){
@@ -288,16 +377,35 @@ Tower = function(x,y){
         if(org.intersect(ctr)){
             var halfWidth = org.width/2;
             var halfHeight = org.height/2;
-            if(ctr.x+ctr.radius > org.x-halfWidth && ctr.x+ctr.radius < org.x){
-                ctr.x = org.x-halfWidth-ctr.radius;
-            }else if(ctr.x-ctr.radius < org.x+halfWidth && ctr.x-ctr.radius > org.x){
-                ctr.x = org.x+halfWidth+ctr.radius;
+            var dx = Math.abs(ctr.dx);
+            var dy = Math.abs(ctr.dy);
+
+            if(dx>dy){
+                if(ctr.x+ctr.radius > org.x-halfWidth && ctr.x+ctr.radius < org.x){
+                    ctr.x = org.x-halfWidth-ctr.radius;
+                }else if(ctr.x-ctr.radius < org.x+halfWidth && ctr.x-ctr.radius > org.x){
+                    ctr.x = org.x+halfWidth+ctr.radius;
+                }else if(ctr.y+ctr.radius > org.y-halfWidth && ctr.y+ctr.radius < org.y){
+                    ctr.y = org.y-halfWidth-ctr.radius;
+                }else if(ctr.y-ctr.radius < org.y+halfWidth && ctr.y-ctr.radius > org.y){
+                    ctr.y = org.y+halfWidth+ctr.radius;
+                }
+                return true;
             }
-            if(ctr.y+ctr.radius > org.y-halfWidth && ctr.y+ctr.radius < org.y){
-                ctr.y = org.y-halfWidth-ctr.radius;
-            }else if(ctr.y-ctr.radius < org.y+halfWidth && ctr.y-ctr.radius > org.y){
-                ctr.y = org.y+halfWidth+ctr.radius;
+            else if(dx<dy){
+                if(ctr.y+ctr.radius > org.y-halfWidth && ctr.y+ctr.radius < org.y){
+                    ctr.y = org.y-halfWidth-ctr.radius;
+                }else if(ctr.y-ctr.radius < org.y+halfWidth && ctr.y-ctr.radius > org.y){
+                    ctr.y = org.y+halfWidth+ctr.radius;
+                }else if(ctr.x+ctr.radius > org.x-halfWidth && ctr.x+ctr.radius < org.x){
+                    ctr.x = org.x-halfWidth-ctr.radius;
+                }else if(ctr.x-ctr.radius < org.x+halfWidth && ctr.x-ctr.radius > org.x){
+                    ctr.x = org.x+halfWidth+ctr.radius;
+                }
+                return true;
             }
+        }else{
+            return false;
         }
     }
     org.update = function(){
@@ -320,6 +428,8 @@ Tower = function(x,y){
             org.team = 'A';
         }else if((org.team=='none'||org.team=='A') &&!Ainvaded &&Binvaded){
             org.team = 'B';
+        }else if(!Ainvaded &&!Binvaded){
+            org.team = 'none';
         }
     }
 
@@ -337,8 +447,8 @@ Tower = function(x,y){
 
 //map
 var map = {
-    width: 4000,
-    height: 4000,
+    width: 3000,
+    height: 3000,
     randomX: function(){
         return Math.floor(Math.random()*map.width);
     },
@@ -348,15 +458,22 @@ var map = {
     towers: {},
     obstacles: {},
     creatures: {},
+    shots: {},
     collide: function(ctr){
         if(ctr.x<0){
             ctr.x = 0+ctr.radius;
+            return true;
         }else if(ctr.x>map.width){
             ctr.x = map.width-ctr.radius;
+            return true;
         }else if(ctr.y<0){
             ctr.y = 0+ctr.radius;
+            return true;
         }else if(ctr.y>map.height){
             ctr.y = map.height-ctr.radius;
+            return true;
+        }else{
+            return false;
         }
     }
 };

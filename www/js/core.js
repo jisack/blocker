@@ -28,7 +28,11 @@ function preload(){
     game.load.spritesheet('Aarcher', 'assets/A/archer.svg',46,46);
     game.load.spritesheet('Bwarrior', 'assets/B/warrior.svg',46,46);
     game.load.spritesheet('Barcher', 'assets/B/archer.svg',46,46);
+
+    //weapon
     game.load.spritesheet('sword', 'assets/weapons/sword.svg',160,160);
+    game.load.spritesheet('bow', 'assets/weapons/bow.svg',160,160);
+    game.load.image('arrow', 'assets/weapons/arrow.svg');
 
     game.scale.scaleMode = Phaser.ScaleManager.RESIZE;
     game.scale.setResizeCallback(function(){
@@ -39,7 +43,7 @@ function preload(){
     });
 }
 
-var size = 4000;
+var size = 3000;
 function create(){
     socket = io.connect('http://'+location.hostname+':8000');//new WebSocket('ws://'+location.hostname+':8888');
     client();
@@ -129,7 +133,7 @@ function render(){
 }
 
 //Initial
-var field,player,zones,shadows,shadows2,shadows3,names,zombies,heroes,trees,rocks,towers,weapons,effects;
+var field,player,zones,shadows,shadows2,shadows3,shots,names,zombies,heroes,trees,rocks,towers,weapons,effects;
 var playId,creatures = {};
 var button = {};
 
@@ -138,6 +142,7 @@ function init(){
     weapons = game.add.group();
     shadows = game.add.group();
 
+    shots = game.add.group();
     zombies = game.add.group();
     heroes = game.add.group();
     names = game.add.group();
@@ -149,9 +154,6 @@ function init(){
     towers = game.add.group();
 
     effects = game.add.group();
-    emitter = game.add.emitter(-100,-100,5);
-    emitter.makeParticles('flake');
-    emitter.gravity = 100;
 
     playId = localStorage.getItem('uuid')||uuid();
     localStorage.setItem('uuid',playId);
@@ -183,9 +185,6 @@ var map = {
                 case 'rock':
                     new Rock(e.data[i]);
                     break;
-                /*case 'tower':
-                    new Tower(e.data[i]);
-                    break;*/
             }
         }
         map.ready = true;
@@ -213,6 +212,10 @@ var map = {
                         break;
                     case 'zombie':
                         new Zombie(data[i]);
+                        break;
+                    ////
+                    case 'arrow':
+                        new Arrow(data[i]);
                         break;
                     case 'tower':
                         new Tower(data[i]);
