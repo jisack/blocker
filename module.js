@@ -69,7 +69,8 @@ Creature = function(x,y){
         sp: 10,
         msp:10,
         atk: 1,
-        spd: Game.SPEED
+        spd: Game.SPEED,
+        ospd: Game.SPEED
     };
     org.zone = 500;
 
@@ -81,9 +82,9 @@ Game = {};
 Game.SPEED = 25;
 Game.JOB_WARRIOR = 1;
 Game.JOB_ARCHER = 2;
-Game.JOB_SPEED = {'warrior':Game.SPEED-2, 'archer':Game.SPEED};
-Game.JOB_MSP = {'warrior':10, 'archer':10};
-Game.JOB_ATTACK = {'warrior':10, 'archer':10};
+//Game.JOB_SPEED = {'warrior':Game.SPEED-2, 'ranger':Game.SPEED};
+Game.JOB_MSP = {'warrior':9, 'ranger':10, 'warlock':11, 'docter':20};
+Game.JOB_ATTACK = {'warrior':9, 'ranger':10, 'warlock':11, 'doctor':20};
 
 //weapons
 Arrow = function(data){
@@ -91,7 +92,7 @@ Arrow = function(data){
     org.owner = data.owner;
     org.type = 'arrow';
     org.damage = 1;
-    org.radius = 10;
+    org.radius = 5;
     org.rotation = data.rotation;
     org.life = 10;
 
@@ -129,6 +130,49 @@ Arrow = function(data){
         data.life = org.life;
         if(org.life<0) org.clear();
         return data;
+    }
+
+    map.shots[org.id] = org;
+    return org;
+}
+Frost = function(data){
+    var org = new Arrow(data);
+    org.owner = data.owner;
+    org.type = 'frost';
+    org.damage = 0;
+    org.radius = 5;
+    org.life = 10;
+
+    org.update = function(){
+        //moving
+        org.x -= Math.cos(org.rotation)*30;
+        org.y -= Math.sin(org.rotation)*30;
+
+        if(org.life>0){
+            if(map.collide(org)){
+                org.life = 0;
+            }
+            for(var i in map.creatures){
+                if(map.creatures[i].collide(org,true) && map.creatures[i].id!=org.owner){
+                    var e = map.creatures[i];
+                    var old = e.stat.ospd;
+                    e.stat.spd = e.stat.spd/2;
+                    e.action.hit = true;
+                    setTimeout(function(){
+                        e.stat.spd = old;
+                    },2000);
+                    org.life = 0;
+                    break;
+                }
+            }
+            for(var i in map.obstacles){
+                if(map.obstacles[i].collide(org,true)){
+                    org.life = 0;
+                    break;
+                }
+            }
+        }
+        org.life--;
     }
 
     map.shots[org.id] = org;
@@ -197,11 +241,28 @@ Hero = function(socket,data){
                     }
                     break;
 
-                case 'archer':
+                case 'ranger':
                     new Arrow({
                         owner: ctr.id,
-                        x: ctr.x-ctr.radius,
-                        y: ctr.y-ctr.radius,
+                        x: ctr.x,
+                        y: ctr.y,
+                        rotation: ctr.rotation
+                    });
+                    break;
+
+                case 'warlock':
+                    new Frost({
+                        owner: ctr.id,
+                        x: ctr.x,
+                        y: ctr.y,
+                        rotation: ctr.rotation
+                    });
+                    break;
+
+                case 'doctor':
+                    new Potion({
+                        x: ctr.x,
+                        y: ctr.y,
                         rotation: ctr.rotation
                     });
                     break;
@@ -270,6 +331,7 @@ Monster = function(){
     var ctr = new Creature(map.randomX(),map.randomY());
     ctr.action = {};
     ctr.stat.spd = 15;
+    ctr.stat.ospd = 15;
     ctr.time = 0;
 
     ctr.update = function(){

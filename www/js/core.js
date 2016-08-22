@@ -3,7 +3,7 @@ if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigat
     mobile = true;
 }
 
-var game = new Phaser.Game('100%', '100%', Phaser.AUTO, 'Blocker', { preload: preload, create: create, update: update, render: render}, false, false);
+var game = new Phaser.Game((mobile? '800':'100%'), '100%', Phaser.AUTO, 'Blocker', { preload: preload, create: create, update: update, render: render}, false, false);
 
 function preload(){
     //textures
@@ -19,21 +19,29 @@ function preload(){
 
     //fx
     game.load.image('flake', 'assets/fx/flake.svg');
+    game.load.image('frost', 'assets/fx/frost.svg');
     
     //creatures
     game.load.spritesheet('zombie', 'assets/zombie.svg',46,46);
     game.load.image('hands', 'assets/weapons/hands.svg');
 
     game.load.spritesheet('Awarrior', 'assets/A/warrior.svg',46,46);
-    game.load.spritesheet('Aarcher', 'assets/A/archer.svg',46,46);
+    game.load.spritesheet('Aranger', 'assets/A/ranger.svg',46,46);
+    game.load.spritesheet('Awarlock', 'assets/A/warlock.svg',46,46);
+    game.load.spritesheet('Adoctor', 'assets/A/doctor.svg',46,46);
+
     game.load.spritesheet('Bwarrior', 'assets/B/warrior.svg',46,46);
-    game.load.spritesheet('Barcher', 'assets/B/archer.svg',46,46);
+    game.load.spritesheet('Branger', 'assets/B/ranger.svg',46,46);
+    game.load.spritesheet('Bwarlock', 'assets/B/warlock.svg',46,46);
+    game.load.spritesheet('Bdoctor', 'assets/B/doctor.svg',46,46);
 
     //weapon
     game.load.spritesheet('sword', 'assets/weapons/sword.svg',160,160);
     game.load.spritesheet('bow', 'assets/weapons/bow.svg',160,160);
     game.load.image('arrow', 'assets/weapons/arrow.svg');
-
+    game.load.spritesheet('cloak', 'assets/weapons/cloak.svg',160,160);
+    game.load.spritesheet('bag', 'assets/weapons/bag.svg',160,160);
+    
     game.scale.scaleMode = Phaser.ScaleManager.RESIZE;
     game.scale.setResizeCallback(function(){
         game.scale.setMaximum();
@@ -197,6 +205,9 @@ var map = {
                     ////
                     case 'arrow':
                         new Arrow(data[i]);
+                        break;
+                    case 'frost':
+                        new Frost(data[i]);
                         break;
                     case 'tower':
                         new Tower(data[i]);

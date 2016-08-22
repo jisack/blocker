@@ -7,13 +7,13 @@ function uuid(){
 
 var socket;
 
-var lastMove = 0;
+//var lastMove = 0;
 function send(data){
     var now = Date.now();
-    if(lastMove<now-50){                
+    //if(lastMove<now-50){                
         socket.emit('message',JSON.stringify(data));
-        lastMove = now;
-    }
+        //lastMove = now;
+    //}
 }
 
 function client(){

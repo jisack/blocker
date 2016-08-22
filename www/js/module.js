@@ -131,7 +131,9 @@ Game.style = {font:"Montserrat", fill:"#fff", wordWrap:true, wordWrapWidth:null,
 Game.health = ['#FF0000','#FF3333','#FF6666','#FF9999','#FFCCCC','#fff'];
 Game.baseColor = {'none':'#FFFFFF', 'A':'#EE5A48', 'B':'#366EBB'};
 Game.baseCapture = {'none':'- Outpost', 'A':'+ Outpost', 'B':'+ Outpost'};
-Game.jobWeapon = {'warrior':'sword', 'archer':'bow'};
+
+Game.jobs = ['warrior','ranger','warlock','doctor'];
+Game.jobWeapon = {'warrior':'sword', 'ranger':'bow', 'warlock':'cloak', 'doctor':'bag'};
 
 //Effects
 Hit = function(x,y){
@@ -139,6 +141,15 @@ Hit = function(x,y){
     emitter.makeParticles('flake');
     emitter.gravity = 100;
     emitter.start(true, 250, null, 5);
+    setTimeout(function(){
+        emitter.destroy();
+    },250);
+}
+Flake = function(x,y){
+    var emitter = game.add.emitter(x,y,3);
+    emitter.makeParticles('frost');
+    emitter.gravity = 100;
+    emitter.start(true, 250, null, 3);
     setTimeout(function(){
         emitter.destroy();
     },250);
@@ -285,7 +296,7 @@ Zombie = function(data){
 
 //Weapon
 Arrow = function(data){
-    var obj = shots.create(data.x+data.radius, data.y+data.radius, 'arrow');
+    var obj = shots.create(data.x-25, data.y-25, 'arrow');
     obj.id = data.id;
     obj.rotation = data.rotation;
     obj.anchor.setTo(0.5, 0.5);
@@ -295,11 +306,28 @@ Arrow = function(data){
         delete creatures[data.id];
     }
     obj.live = function(data){
-        new Tween(obj, obj.id, {x:data.x+data.radius, y:data.y+data.radius}, 10);
+        new Tween(obj, obj.id, {x:data.x-25, y:data.y-25}, 10);
     }
     setTimeout(function(){
         obj.clear();
     },5000);
+
+    creatures[data.id] = obj;
+    return obj;
+}
+Frost = function(data){
+    var obj = {};
+    obj.id = data.id;
+
+    obj.clear = function(){
+        delete creatures[data.id];
+    }
+    obj.live = function(data){
+        new Flake(data.x-25,data.y-25);
+    }
+    setTimeout(function(){
+        obj.clear();
+    },1500);
 
     creatures[data.id] = obj;
     return obj;

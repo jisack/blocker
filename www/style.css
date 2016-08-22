@@ -49,7 +49,7 @@ html,body{
 .right:before{
     position:absolute;
     top:10px;left:10px;
-    content:'Choose Hero :';
+    content:'Play as :';
 }
 .right{
     text-align:right;

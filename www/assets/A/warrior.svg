@@ -3,10 +3,10 @@
 <defs>
 <g id="Layer0_0_FILL">
 <path fill="#EE5A48" stroke="none" d="
-M 7 41.9
-L 7 5 4 5 4 41.9 7 41.9 Z"/>
+M 4 41.9
+L 7 41.9 7 5 4 5 4 41.9 Z"/>
 
-<path fill="#836E66" stroke="none" d="
+<path fill="#77665F" stroke="none" d="
 M 41 41.9
 L 41 10 46 10 46 5 12.2 5 12.2 0 7 0 7 5 7 41.9 41 41.9 Z"/>
 

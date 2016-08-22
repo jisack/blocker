@@ -119,7 +119,7 @@ StartUI = function(){
     div.top.appendChild(div.red);
     div.top.appendChild(div.blue);
 
-    div.selector = new Selector(['warrior','archer']);
+    div.selector = new Selector(Game.jobs);
 
     div.left.appendChild(div.name);
     div.left.appendChild(div.play);
@@ -135,7 +135,7 @@ var body = document.body||document.documentElement;
 var ui = {
     playable: function(){
         if(ui.current){
-            /*if(ui.job=='archer'){
+            /*if(ui.job=='ranger'){
                 ui.current.play.disabled = true;
             }else */if(ui.current.name.value==''){
                 ui.current.play.disabled = true;
