@@ -151,7 +151,7 @@ function init(){
     new Tower(map.width/4,map.height/4*3);
     new Tower(map.width/4*3,map.height/4*3);
 
-    for(var i=0;i<6;i++){
+    for(var i=0;i<10;i++){
         new Zombie();
     }
 }

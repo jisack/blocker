@@ -130,7 +130,7 @@ Game = {};
 Game.style = {font:"Montserrat", fill:"#fff", wordWrap:true, wordWrapWidth:null, align:"center"};
 Game.health = ['#FF0000','#FF3333','#FF6666','#FF9999','#FFCCCC','#fff'];
 Game.baseColor = {'none':'#FFFFFF', 'A':'#EE5A48', 'B':'#366EBB'};
-Game.baseCapture = {'none':'Decamp', 'A':'+ Base', 'B':'+ Base'};
+Game.baseCapture = {'none':'- Outpost', 'A':'+ Outpost', 'B':'+ Outpost'};
 Game.jobWeapon = {'warrior':'sword', 'archer':'bow'};
 
 //Effects
@@ -147,7 +147,7 @@ Capture = function(x,y,width,team){
     var style = Game.style;
     style.fill = Game.baseColor[team];
     style.wordWrapWidth = width;
-    style.fontSize = '18px';
+    style.fontSize = '17px';
     style.fontWeight = 'bold';
     var f = game.add.text(x, y, Game.baseCapture[team], style);
     f.anchor.set(0.5);
@@ -285,7 +285,7 @@ Zombie = function(data){
 
 //Weapon
 Arrow = function(data){
-    var obj = shots.create(data.x, data.y, 'arrow');
+    var obj = shots.create(data.x+data.radius, data.y+data.radius, 'arrow');
     obj.id = data.id;
     obj.rotation = data.rotation;
     obj.anchor.setTo(0.5, 0.5);
@@ -295,7 +295,7 @@ Arrow = function(data){
         delete creatures[data.id];
     }
     obj.live = function(data){
-        new Tween(obj, obj.id, {x:data.x, y:data.y}, 10);
+        new Tween(obj, obj.id, {x:data.x+data.radius, y:data.y+data.radius}, 10);
     }
     setTimeout(function(){
         obj.clear();

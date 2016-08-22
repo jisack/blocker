@@ -90,7 +90,6 @@ function updateUI(){
     }
 }
 
-var lastMove = 0;
 function update(){
     if(map.ready){
         if(player){
@@ -98,16 +97,13 @@ function update(){
 
             if (game.input.activePointer.leftButton.isDown || game.input.pointer1.isDown){
                 var rad = (mobile? controllerRotation():playerRotation());
-                var now = Date.now();
-                player.rotation = rad;
-
-                if(rad&& now-lastMove>50){
+                if(rad){
+                    player.rotation = rad;
                     send({
                         status: 'move',
                         id: player.id,
                         rotation: rad
                     });
-                    lastMove = now;
                 }
             }
             if (game.input.activePointer.rightButton.isDown){
@@ -135,7 +131,6 @@ function render(){
 //Initial
 var field,player,zones,shadows,shadows2,shadows3,shots,names,zombies,heroes,trees,rocks,towers,weapons,effects;
 var playId,creatures = {};
-var button = {};
 
 function init(){
     zones = game.add.group();
@@ -157,20 +152,6 @@ function init(){
 
     playId = localStorage.getItem('uuid')||uuid();
     localStorage.setItem('uuid',playId);
-}
-
-//ui
-function mobileUI(){
-    if(mobile){
-        button.move = game.add.sprite(game.camera.x, game.camera.y+window.innerHeight-256, 'move');
-        button.attack = game.add.button(game.camera.x+window.innerWidth-256, game.camera.y+window.innerHeight-256, 'attack', function(){
-            send({
-                status: 'attack',
-                id: player.id,
-                rotation: player.rotation
-            });
-        }, this, 2, 1, 0);
-    }
 }
 
 //update map

@@ -81,6 +81,7 @@ Game = {};
 Game.SPEED = 25;
 Game.JOB_WARRIOR = 1;
 Game.JOB_ARCHER = 2;
+Game.JOB_SPEED = {'warrior':Game.SPEED-2, 'archer':Game.SPEED};
 Game.JOB_MSP = {'warrior':10, 'archer':10};
 Game.JOB_ATTACK = {'warrior':10, 'archer':10};
 

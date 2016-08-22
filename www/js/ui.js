@@ -1,3 +1,18 @@
+//Buttons
+var button = {};
+function mobileUI(){
+    if(mobile){
+        button.move = game.add.sprite(game.camera.x, game.camera.y+window.innerHeight-256, 'move');
+        button.attack = game.add.button(game.camera.x+window.innerWidth-256, game.camera.y+window.innerHeight-256, 'attack', function(){
+            send({
+                status: 'attack',
+                id: player.id,
+                rotation: player.rotation
+            });
+        }, this, 2, 1, 0);
+    }
+}
+
 //UI
 Selector = function(data){
     var div = document.createElement('div');
