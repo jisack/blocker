@@ -145,6 +145,15 @@ Hit = function(x,y){
         emitter.destroy();
     },250);
 }
+Heal = function(x,y){
+    var emitter = game.add.emitter(x,y,5);
+    emitter.makeParticles('heal');
+    emitter.gravity = 50;
+    emitter.start(true, 300, null, 5);
+    setTimeout(function(){
+        emitter.destroy();
+    },400);
+}
 Flake = function(x,y){
     var emitter = game.add.emitter(x,y,3);
     emitter.makeParticles('frost');
@@ -167,6 +176,84 @@ Capture = function(x,y,width,team){
     t.onComplete.add(function(){
         f.destroy();
     }, this);
+}
+
+//Weapon
+Arrow = function(data){
+    var obj = shots.create(data.x-25, data.y-25, 'arrow');
+    obj.id = data.id;
+    obj.rotation = data.rotation;
+    obj.anchor.setTo(0.5, 0.5);
+
+    obj.clear = function(){
+        obj.destroy();
+        delete creatures[data.id];
+    }
+    obj.live = function(data){
+        new Tween(obj, obj.id, {x:data.x-25, y:data.y-25}, 10);
+        if(data.action.collided){
+            new Hit(obj.x,obj.y);
+            clearTimeout(obj.time);
+            obj.clear();
+        }
+    }
+    obj.time = setTimeout(function(){
+        obj.clear();
+    },5000);
+
+    creatures[data.id] = obj;
+    return obj;
+}
+Frost = function(data){
+    var obj = {};
+    obj.id = data.id;
+
+    obj.clear = function(){
+        delete creatures[data.id];
+    }
+    obj.live = function(data){
+        new Flake(data.x-25,data.y-25);
+        if(data.action.collided){
+            new Hit(data.x,data.y);
+            clearTimeout(obj.time);
+            obj.clear();
+        }
+    }
+    obj.time = setTimeout(function(){
+        obj.clear();
+    },1500);
+
+    creatures[data.id] = obj;
+    return obj;
+}
+Potion = function(data){
+    var obj = shots.create(data.x-25, data.y-25, 'potion');
+    obj.id = data.id;
+    obj.anchor.setTo(0.5, 0.5);
+
+    obj.clear = function(){
+        obj.destroy();
+        delete creatures[data.id];
+    }
+    obj.live = function(data){
+        new Tween(obj, obj.id, {x:data.x-25, y:data.y-25}, 10);
+        if(data.action.collided){
+            //clearTimeout(obj.time);
+            if(data.action.heal){
+                new Heal(obj.x,obj.y);
+            }else{
+                new Hit(obj.x,obj.y);
+            }
+            obj.clear();
+        }
+    }
+    /*obj.time = setTimeout(function(){
+        new Hit(obj.x,obj.y);
+        obj.clear();
+    },6000);*/
+
+    creatures[data.id] = obj;
+    return obj;
 }
 
 //Creatures
@@ -222,6 +309,14 @@ Hero = function(data){
         new Hit(obj.x,obj.y);
     }
 
+    obj.clear = function(){
+        obj.destroy();
+        obj.name.destroy();
+        obj.weapon.destroy();
+        obj.shadowImage.destroy();
+        delete creatures[obj.id];
+    }
+
     obj.live = function(data){
         if(obj.hp!=data.hp){
             obj.hp = data.hp;
@@ -233,16 +328,17 @@ Hero = function(data){
         if(data.action.hit){
             obj.hit();
         }
-        if(data.action.left){
-            obj.destroy();
-            obj.name.destroy();
-            obj.weapon.destroy();
-            obj.shadowImage.destroy();
-            delete creatures[obj.id];
+        if(data.action.heal){
+            obj.animations.play('hit', 10, false);
+            new Heal(obj.x,obj.y);
         }
-        new Tween(obj, obj.id, {rotation:data.rotation, x:data.x, y:data.y}, 10);
-        new Tween(obj.weapon, obj.id+'w', {rotation:data.rotation, x:data.x, y:data.y}, 10, true);
-        //new Tween(obj.shadowImage, obj.id+'s', {x:data.x-data.radius+obj.shadow.spread, y:data.y-data.radius+obj.shadow.spread}, 10);
+        
+        if(data.hp<=0 || data.action.left){
+            obj.clear();
+        }else{
+            new Tween(obj, obj.id, {rotation:data.rotation, x:data.x, y:data.y}, 10);
+            new Tween(obj.weapon, obj.id+'w', {rotation:data.rotation, x:data.x, y:data.y}, 10, true);
+        }
     }
     creatures[data.id] = obj;
     return obj;
@@ -282,53 +378,25 @@ Zombie = function(data){
         new Hit(obj.x,obj.y);
     }
 
+    obj.clear = function(){
+        obj.destroy();
+        obj.weapon.destroy();
+        obj.shadowImage.destroy();
+        delete creatures[obj.id];
+    }
+
     obj.live = function(data){
         if(data.action.hit){
             obj.hit();
         }
-        new Tween(obj, obj.id, {rotation:data.rotation, x:data.x, y:data.y}, 10);
-        new Tween(obj.weapon, obj.id+'w', {rotation:data.rotation, x:data.x, y:data.y}, 10, true);
-        //new Tween(obj.shadowImage, obj.id+'s', {x:data.x-data.radius+obj.shadow.spread, y:data.y-data.radius+obj.shadow.spread}, 10);
+        
+        if(data.hp<=0){
+            obj.clear();
+        }else{
+            new Tween(obj, obj.id, {rotation:data.rotation, x:data.x, y:data.y}, 10);
+            new Tween(obj.weapon, obj.id+'w', {rotation:data.rotation, x:data.x, y:data.y}, 10, true);
+        }
     }
-    creatures[data.id] = obj;
-    return obj;
-}
-
-//Weapon
-Arrow = function(data){
-    var obj = shots.create(data.x-25, data.y-25, 'arrow');
-    obj.id = data.id;
-    obj.rotation = data.rotation;
-    obj.anchor.setTo(0.5, 0.5);
-
-    obj.clear = function(){
-        obj.destroy();
-        delete creatures[data.id];
-    }
-    obj.live = function(data){
-        new Tween(obj, obj.id, {x:data.x-25, y:data.y-25}, 10);
-    }
-    setTimeout(function(){
-        obj.clear();
-    },5000);
-
-    creatures[data.id] = obj;
-    return obj;
-}
-Frost = function(data){
-    var obj = {};
-    obj.id = data.id;
-
-    obj.clear = function(){
-        delete creatures[data.id];
-    }
-    obj.live = function(data){
-        new Flake(data.x-25,data.y-25);
-    }
-    setTimeout(function(){
-        obj.clear();
-    },1500);
-
     creatures[data.id] = obj;
     return obj;
 }

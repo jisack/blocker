@@ -65,15 +65,15 @@ function load(socket,data){
     });
 }
 function join(socket,data){
-    if(users[data.id]){
+    /*if(users[data.id]){
 
-    }else{
+    }else{*/
         users[data.id] = new Hero(socket,data);
         send(socket,{
             status: 'play',
             player: users[data.id].getData()
         });
-    }
+    //}
 }
 function move(data){
     if(users[data.id]){
@@ -105,7 +105,7 @@ function leave(socket){
     }*/
     if(socket.user){
         var id = socket.user;
-        users[id].action.left = true;
+        if(users[id]) users[id].action.left = true;
     }
 }
 

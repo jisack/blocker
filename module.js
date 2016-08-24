@@ -66,6 +66,7 @@ Creature = function(x,y){
     var org = new Origin(x,y);
     org.stat = {
         hp: 5,
+        mhp: 5,
         sp: 10,
         msp:10,
         atk: 1,
@@ -83,8 +84,8 @@ Game.SPEED = 25;
 Game.JOB_WARRIOR = 1;
 Game.JOB_ARCHER = 2;
 //Game.JOB_SPEED = {'warrior':Game.SPEED-2, 'ranger':Game.SPEED};
-Game.JOB_MSP = {'warrior':9, 'ranger':10, 'warlock':11, 'docter':20};
-Game.JOB_ATTACK = {'warrior':9, 'ranger':10, 'warlock':11, 'doctor':20};
+Game.JOB_MSP = {'warrior':9, 'ranger':12, 'warlock':11, 'doctor':20};
+Game.JOB_ATTACK = {'warrior':9, 'ranger':12, 'warlock':11, 'doctor':20};
 
 //weapons
 Arrow = function(data){
@@ -95,6 +96,7 @@ Arrow = function(data){
     org.radius = 5;
     org.rotation = data.rotation;
     org.life = 10;
+    org.action = {};
 
     org.update = function(){
         //moving
@@ -106,9 +108,15 @@ Arrow = function(data){
                 org.life = 0;
             }
             for(var i in map.creatures){
-                if(map.creatures[i].collide(org,true) && map.creatures[i].id!=org.owner){
-                    map.creatures[i].stat.hp -= org.damage;
-                    map.creatures[i].action.hit = true;
+                var e = map.creatures[i];
+                var collided = e.collide(org,true);
+                if(collided && e.id!=org.owner && e.action.attack){
+                    org.action.collided = true;
+                    org.life = 0;
+                    break;
+                }else if(collided && e.id!=org.owner){
+                    e.stat.hp -= org.damage;
+                    e.action.hit = true;
                     org.life = 0;
                     break;
                 }
@@ -128,6 +136,7 @@ Arrow = function(data){
     org.getData = function(){
         var data = org.data();
         data.life = org.life;
+        data.action = org.action;
         if(org.life<0) org.clear();
         return data;
     }
@@ -139,8 +148,8 @@ Frost = function(data){
     var org = new Arrow(data);
     org.owner = data.owner;
     org.type = 'frost';
-    org.damage = 0;
-    org.radius = 5;
+    org.damage = 1;
+    org.radius = 10;
     org.life = 10;
 
     org.update = function(){
@@ -153,10 +162,18 @@ Frost = function(data){
                 org.life = 0;
             }
             for(var i in map.creatures){
-                if(map.creatures[i].collide(org,true) && map.creatures[i].id!=org.owner){
-                    var e = map.creatures[i];
+                var e = map.creatures[i];
+                var collided = e.collide(org,true);
+
+                if(collided && e.id!=org.owner && e.action.attack){
+                    org.action.collided = true;
+                    org.life = 0;
+                    break;
+                }else if(collided && e.id!=org.owner){
                     var old = e.stat.ospd;
                     e.stat.spd = e.stat.spd/2;
+                    
+                    if(e.stat.spd<7) e.stat.hp -= org.damage;
                     e.action.hit = true;
                     setTimeout(function(){
                         e.stat.spd = old;
@@ -173,6 +190,66 @@ Frost = function(data){
             }
         }
         org.life--;
+    }
+
+    map.shots[org.id] = org;
+    return org;
+}
+Potion = function(data){
+    var org = new Arrow(data);
+    org.owner = data.owner;
+    org.team = data.team;
+    org.type = 'potion';
+    org.damage = 1;
+    org.radius = 10;
+    org.life = Math.ceil(Math.random()*4)+2;
+    org.time = 60;
+    org.action = {};
+
+    org.update = function(){
+        //moving
+        if(org.life>0){
+            org.x -= Math.cos(org.rotation)*30;
+            org.y -= Math.sin(org.rotation)*30;
+        }
+        org.life--;
+        
+        for(var i in map.creatures){
+            var e = map.creatures[i];
+            var collided = e.collide(org,true);
+            if(collided && e.team==org.team && e.id!=org.owner){
+                e.stat.hp += org.damage;
+                e.action.heal = true;
+                org.life = 0;
+                org.action.collided = true;
+                break;
+            }else if(collided && e.team!=org.team && e.id!=org.owner){
+                e.stat.hp -= org.damage;
+                e.action.hit = true;
+                org.life = 0;
+                org.action.collided = true;
+                break;
+            }
+        }
+        for(var i in map.obstacles){
+            if(map.obstacles[i].collide(org,true)){
+                org.life = 0;
+                org.action.collided = true;
+                break;
+            }
+        }
+
+        if(org.time<=0) org.action.collided = true;
+        org.time--;
+    }
+    org.getData = function(){
+        var data = org.data();
+        data.life = org.life;
+        data.action = org.action;
+        if(org.action.collided){
+            org.clear();
+        }
+        return data;
     }
 
     map.shots[org.id] = org;
@@ -261,9 +338,11 @@ Hero = function(socket,data){
 
                 case 'doctor':
                     new Potion({
+                        owner: ctr.id,
                         x: ctr.x,
                         y: ctr.y,
-                        rotation: ctr.rotation
+                        rotation: ctr.rotation,
+                        team: ctr.team
                     });
                     break;
             }
@@ -290,14 +369,10 @@ Hero = function(socket,data){
         }
 
         //stat
-        if(ctr.stat.hp<=0){
-            ctr.stat.hp = 0;
-            
-        }
-        if(ctr.stat.sp<ctr.stat.msp){
-            ctr.stat.sp++;
-        }
-
+        if(ctr.stat.hp<=0) ctr.stat.hp = 0;
+        if(ctr.stat.hp>ctr.stat.mhp) ctr.stat.hp = ctr.stat.mhp;
+        if(ctr.stat.sp<ctr.stat.msp) ctr.stat.sp++;
+        
         //clear status
         setTimeout(function(){
             ctr.reset();
@@ -307,6 +382,9 @@ Hero = function(socket,data){
         ctr.action = {};
     }
     ctr.clear = function(){
+        delete map.creatures[ctr.id];
+    }
+    ctr.leave = function(){
         delete map.creatures[ctr.id];
         delete users[ctr.id];
     }
@@ -318,7 +396,8 @@ Hero = function(socket,data){
         //stat
         data.hp = ctr.stat.hp;
         data.action = ctr.action;
-        if(ctr.action.left) ctr.clear();
+        if(ctr.stat.hp<=0) ctr.clear();
+        if(ctr.action.left) ctr.leave();
         return data;
     }
 
@@ -368,8 +447,9 @@ Monster = function(){
     }
     ctr.getData = function(){
         var data = ctr.data();
+        data.hp = ctr.stat.hp;
         data.action = ctr.action;
-        if(ctr.action.left) ctr.clear();
+        if(ctr.stat.hp<=0) ctr.clear();
         return data;
     }
     return ctr;
@@ -436,37 +516,38 @@ Tower = function(x,y){
 
         return (cornerDistance <= Math.pow(ctr.radius,2));
     }
-    org.collide = function(ctr){
+    org.collide = function(ctr,disable){
         if(org.intersect(ctr)){
-            var halfWidth = org.width/2;
-            var halfHeight = org.height/2;
-            var dx = Math.abs(ctr.dx);
-            var dy = Math.abs(ctr.dy);
+            if(!disable){
+                var halfWidth = org.width/2;
+                var halfHeight = org.height/2;
+                var dx = Math.abs(ctr.dx);
+                var dy = Math.abs(ctr.dy);
 
-            if(dx>dy){
-                if(ctr.x+ctr.radius > org.x-halfWidth && ctr.x+ctr.radius < org.x){
-                    ctr.x = org.x-halfWidth-ctr.radius;
-                }else if(ctr.x-ctr.radius < org.x+halfWidth && ctr.x-ctr.radius > org.x){
-                    ctr.x = org.x+halfWidth+ctr.radius;
-                }else if(ctr.y+ctr.radius > org.y-halfWidth && ctr.y+ctr.radius < org.y){
-                    ctr.y = org.y-halfWidth-ctr.radius;
-                }else if(ctr.y-ctr.radius < org.y+halfWidth && ctr.y-ctr.radius > org.y){
-                    ctr.y = org.y+halfWidth+ctr.radius;
+                if(dx>dy){
+                    if(ctr.x+ctr.radius > org.x-halfWidth && ctr.x+ctr.radius < org.x){
+                        ctr.x = org.x-halfWidth-ctr.radius;
+                    }else if(ctr.x-ctr.radius < org.x+halfWidth && ctr.x-ctr.radius > org.x){
+                        ctr.x = org.x+halfWidth+ctr.radius;
+                    }else if(ctr.y+ctr.radius > org.y-halfWidth && ctr.y+ctr.radius < org.y){
+                        ctr.y = org.y-halfWidth-ctr.radius;
+                    }else if(ctr.y-ctr.radius < org.y+halfWidth && ctr.y-ctr.radius > org.y){
+                        ctr.y = org.y+halfWidth+ctr.radius;
+                    }
                 }
-                return true;
-            }
-            else if(dx<dy){
-                if(ctr.y+ctr.radius > org.y-halfWidth && ctr.y+ctr.radius < org.y){
-                    ctr.y = org.y-halfWidth-ctr.radius;
-                }else if(ctr.y-ctr.radius < org.y+halfWidth && ctr.y-ctr.radius > org.y){
-                    ctr.y = org.y+halfWidth+ctr.radius;
-                }else if(ctr.x+ctr.radius > org.x-halfWidth && ctr.x+ctr.radius < org.x){
-                    ctr.x = org.x-halfWidth-ctr.radius;
-                }else if(ctr.x-ctr.radius < org.x+halfWidth && ctr.x-ctr.radius > org.x){
-                    ctr.x = org.x+halfWidth+ctr.radius;
+                else if(dx<dy){
+                    if(ctr.y+ctr.radius > org.y-halfWidth && ctr.y+ctr.radius < org.y){
+                        ctr.y = org.y-halfWidth-ctr.radius;
+                    }else if(ctr.y-ctr.radius < org.y+halfWidth && ctr.y-ctr.radius > org.y){
+                        ctr.y = org.y+halfWidth+ctr.radius;
+                    }else if(ctr.x+ctr.radius > org.x-halfWidth && ctr.x+ctr.radius < org.x){
+                        ctr.x = org.x-halfWidth-ctr.radius;
+                    }else if(ctr.x-ctr.radius < org.x+halfWidth && ctr.x-ctr.radius > org.x){
+                        ctr.x = org.x+halfWidth+ctr.radius;
+                    }
                 }
-                return true;
             }
+            return true;
         }else{
             return false;
         }
@@ -491,9 +572,9 @@ Tower = function(x,y){
             org.team = 'A';
         }else if((org.team=='none'||org.team=='A') &&!Ainvaded &&Binvaded){
             org.team = 'B';
-        }else if(!Ainvaded &&!Binvaded){
+        }/*else if(!Ainvaded &&!Binvaded){
             org.team = 'none';
-        }
+        }*/
     }
 
     org.getData = function(){

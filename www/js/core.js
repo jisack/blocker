@@ -3,7 +3,7 @@ if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigat
     mobile = true;
 }
 
-var game = new Phaser.Game((mobile? '800':'100%'), '100%', Phaser.AUTO, 'Blocker', { preload: preload, create: create, update: update, render: render}, false, false);
+var game = new Phaser.Game('100%', '100%', Phaser.AUTO, 'Blocker', { preload: preload, create: create, update: update, render: render}, false, false);
 
 function preload(){
     //textures
@@ -20,7 +20,11 @@ function preload(){
     //fx
     game.load.image('flake', 'assets/fx/flake.svg');
     game.load.image('frost', 'assets/fx/frost.svg');
+    game.load.image('heal', 'assets/fx/heal.svg');
     
+    //items
+    game.load.image('potion', 'assets/items/potion.svg');
+
     //creatures
     game.load.spritesheet('zombie', 'assets/zombie.svg',46,46);
     game.load.image('hands', 'assets/weapons/hands.svg');
@@ -35,10 +39,11 @@ function preload(){
     game.load.spritesheet('Bwarlock', 'assets/B/warlock.svg',46,46);
     game.load.spritesheet('Bdoctor', 'assets/B/doctor.svg',46,46);
 
-    //weapon
+    //weapons
     game.load.spritesheet('sword', 'assets/weapons/sword.svg',160,160);
     game.load.spritesheet('bow', 'assets/weapons/bow.svg',160,160);
     game.load.image('arrow', 'assets/weapons/arrow.svg');
+
     game.load.spritesheet('cloak', 'assets/weapons/cloak.svg',160,160);
     game.load.spritesheet('bag', 'assets/weapons/bag.svg',160,160);
     
@@ -98,33 +103,40 @@ function updateUI(){
     }
 }
 
+var last = {move:0, attack:0};
 function update(){
     if(map.ready){
         if(player){
             updateUI();
+            var now = Date.now();
 
             if (game.input.activePointer.leftButton.isDown || game.input.pointer1.isDown){
                 var rad = (mobile? controllerRotation():playerRotation());
-                if(rad){
-                    player.rotation = rad;
+                player.rotation = rad;
+
+                if(rad && last.move<now-50){
                     send({
                         status: 'move',
                         id: player.id,
                         rotation: rad
                     });
+                    last.move = now;
                 }
             }
             if (game.input.activePointer.rightButton.isDown){
                 var rad = playerRotation();
                 player.rotation = rad;
-                send({
-                    status: 'attack',
-                    id: player.id,
-                    rotation: rad
-                });
+
+                if(last.attack<now-500){
+                    send({
+                        status: 'attack',
+                        id: player.id,
+                        rotation: rad
+                    });
+                    last.attack = now;
+                }
             }
         }
-
         //tween motion
         for(var i in tweens){
             tweens[i].update();
@@ -142,10 +154,11 @@ var playId,creatures = {};
 
 function init(){
     zones = game.add.group();
+    shots = game.add.group();
+
     weapons = game.add.group();
     shadows = game.add.group();
-
-    shots = game.add.group();
+    
     zombies = game.add.group();
     heroes = game.add.group();
     names = game.add.group();
@@ -208,6 +221,9 @@ var map = {
                         break;
                     case 'frost':
                         new Frost(data[i]);
+                        break;
+                    case 'potion':
+                        new Potion(data[i]);
                         break;
                     case 'tower':
                         new Tower(data[i]);

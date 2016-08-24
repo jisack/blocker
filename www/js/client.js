@@ -9,7 +9,7 @@ var socket;
 
 //var lastMove = 0;
 function send(data){
-    var now = Date.now();
+    //var now = Date.now();
     //if(lastMove<now-50){                
         socket.emit('message',JSON.stringify(data));
         //lastMove = now;
