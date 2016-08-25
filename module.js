@@ -74,6 +74,7 @@ Creature = function(x,y){
         ospd: Game.SPEED
     };
     org.zone = 500;
+    org.team = 'none';
 
     return org;
 }
@@ -91,6 +92,7 @@ Game.JOB_ATTACK = {'warrior':9, 'ranger':12, 'warlock':11, 'doctor':20};
 Arrow = function(data){
     var org = new Origin(data.x,data.y);
     org.owner = data.owner;
+    org.team = data.team;
     org.type = 'arrow';
     org.damage = 1;
     org.radius = 5;
@@ -115,7 +117,7 @@ Arrow = function(data){
                     org.life = 0;
                     break;
                 }else if(collided && e.id!=org.owner){
-                    e.stat.hp -= org.damage;
+                    if(e.team!=org.team) e.stat.hp -= org.damage;
                     e.action.hit = true;
                     org.life = 0;
                     break;
@@ -172,8 +174,7 @@ Frost = function(data){
                 }else if(collided && e.id!=org.owner){
                     var old = e.stat.ospd;
                     e.stat.spd = e.stat.spd/2;
-                    
-                    if(e.stat.spd<7) e.stat.hp -= org.damage;
+                    if(e.team!=org.team) e.stat.hp -= org.damage;
                     e.action.hit = true;
                     setTimeout(function(){
                         e.stat.spd = old;
@@ -256,6 +257,9 @@ Potion = function(data){
     return org;
 }
 
+User = function(socket){
+    return {socket: socket};
+}
 Hero = function(socket,data){
     //spawn at base
     var towers = [];
@@ -308,7 +312,7 @@ Hero = function(socket,data){
                                 e.dy = dy;
                                 e.x -= dx*2;
                                 e.y -= dy*2;
-                                e.stat.hp--;
+                                if(e.team!=ctr.team) e.stat.hp--;
                                 e.action.hit = true;
                             }
                         }
@@ -321,6 +325,7 @@ Hero = function(socket,data){
                 case 'ranger':
                     new Arrow({
                         owner: ctr.id,
+                        team: ctr.team,
                         x: ctr.x,
                         y: ctr.y,
                         rotation: ctr.rotation
@@ -330,6 +335,7 @@ Hero = function(socket,data){
                 case 'warlock':
                     new Frost({
                         owner: ctr.id,
+                        team: ctr.team,
                         x: ctr.x,
                         y: ctr.y,
                         rotation: ctr.rotation
@@ -339,10 +345,10 @@ Hero = function(socket,data){
                 case 'doctor':
                     new Potion({
                         owner: ctr.id,
+                        team: ctr.team,
                         x: ctr.x,
                         y: ctr.y,
-                        rotation: ctr.rotation,
-                        team: ctr.team
+                        rotation: ctr.rotation
                     });
                     break;
             }
@@ -382,6 +388,9 @@ Hero = function(socket,data){
         ctr.action = {};
     }
     ctr.clear = function(){
+        setTimeout(function(){
+            new Zombie(ctr.x,ctr.y);
+        },3000);
         delete map.creatures[ctr.id];
     }
     ctr.leave = function(){
@@ -406,8 +415,8 @@ Hero = function(socket,data){
 }
 
 //monsters
-Monster = function(){
-    var ctr = new Creature(map.randomX(),map.randomY());
+Monster = function(x,y){
+    var ctr = new Creature(x||map.randomX(), y||map.randomY());
     ctr.action = {};
     ctr.stat.spd = 15;
     ctr.stat.ospd = 15;
@@ -454,8 +463,8 @@ Monster = function(){
     }
     return ctr;
 }
-Zombie = function(){
-    var mon = new Monster();
+Zombie = function(x,y){
+    var mon = new Monster(x,y);
     mon.type = 'zombie';
 
     map.creatures[mon.id] = mon;

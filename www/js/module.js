@@ -163,6 +163,17 @@ Flake = function(x,y){
         emitter.destroy();
     },250);
 }
+Bone = function(x,y){
+    var emitter = game.add.emitter(x,y,5);
+    emitter.makeParticles('bone');
+    emitter.gravity = 100;
+    emitter.width = 50;
+    emitter.setAlpha(1,0,2000, Phaser.Easing.Exponential.In);
+    emitter.start(true, 2000, null, 5);
+    setTimeout(function(){
+        emitter.destroy();
+    },2000);
+}
 Capture = function(x,y,width,team){
     var style = Game.style;
     style.fill = Game.baseColor[team];
@@ -310,6 +321,7 @@ Hero = function(data){
     }
 
     obj.clear = function(){
+        new Bone(obj.x,obj.y);
         obj.destroy();
         obj.name.destroy();
         obj.weapon.destroy();
@@ -335,6 +347,9 @@ Hero = function(data){
         
         if(data.hp<=0 || data.action.left){
             obj.clear();
+            if(player==obj){
+                body.appendChild(ui.current);
+            }
         }else{
             new Tween(obj, obj.id, {rotation:data.rotation, x:data.x, y:data.y}, 10);
             new Tween(obj.weapon, obj.id+'w', {rotation:data.rotation, x:data.x, y:data.y}, 10, true);
@@ -349,6 +364,7 @@ Player = function(data){
 }
 
 Zombie = function(data){
+    new Heal(data.x,data.y);
     var obj = zombies.create(data.x, data.y, 'zombie');
     obj.id = data.id;
     obj.radius = data.radius;
@@ -379,6 +395,7 @@ Zombie = function(data){
     }
 
     obj.clear = function(){
+        new Bone(obj.x,obj.y);
         obj.destroy();
         obj.weapon.destroy();
         obj.shadowImage.destroy();

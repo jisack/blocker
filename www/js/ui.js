@@ -54,6 +54,9 @@ Selector = function(data){
         div.i = (div.i+1>div.list.length-1 ? 0:div.i+1);
         div.clear();
     }
+    do{
+        div.right.click();
+    }while(ui.job!=ui.lastJob);
 
     div.left.click();
     return div;
@@ -146,8 +149,8 @@ var ui = {
     },
     start: function(){
         var team = ['A','B'];
-        ui.team = team[Math.floor(Math.random()*2)];
-        ui.job = 'warrior';
+        ui.team = localStorage.getItem('team')||team[Math.floor(Math.random()*2)];
+        ui.lastJob = localStorage.getItem('job')||'warrior';
         ui.current = new StartUI();
         body.appendChild(ui.current);
         //default

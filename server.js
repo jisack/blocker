@@ -58,6 +58,7 @@ function load(socket,data){
     for(var i in map.obstacles){
         mapData.push(map.obstacles[i].getData());
     }
+    users[data.id] = new User(socket);
     send(socket,{
         status: 'init',
         data: mapData
@@ -159,13 +160,13 @@ function init(){
 //update
 function getCreatures(){
     var data = [];
-    for(var i in map.creatures){
-        map.creatures[i].update();
-        data.push(map.creatures[i].getData());
-    }
     for(var i in map.shots){
         map.shots[i].update();
         data.push(map.shots[i].getData());
+    }
+    for(var i in map.creatures){
+        map.creatures[i].update();
+        data.push(map.creatures[i].getData());
     }
     for(var i in map.towers){
         map.towers[i].update();

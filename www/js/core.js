@@ -21,6 +21,7 @@ function preload(){
     game.load.image('flake', 'assets/fx/flake.svg');
     game.load.image('frost', 'assets/fx/frost.svg');
     game.load.image('heal', 'assets/fx/heal.svg');
+    game.load.image('bone', 'assets/fx/bone.svg');
     
     //items
     game.load.image('potion', 'assets/items/potion.svg');
@@ -194,6 +195,8 @@ var map = {
     play: function(e){
         //new player
         localStorage.setItem('name',ui.current.name.value);
+        localStorage.setItem('team',ui.team);
+        localStorage.setItem('job',ui.job);
         player = new Player(e.player);
         game.camera.follow(player);
         body.removeChild(ui.current);
