@@ -111,6 +111,12 @@ Tween = function(obj,id,data,time,slow){
             obj.name.x = obj.x;
             obj.name.y = obj.y-obj.radius-obj.radius/4;
         }
+        if(obj.text){
+            obj.text.x = obj.x;
+            obj.text.y = obj.y-obj.radius-obj.radius/3;
+            obj.textBubble.x = obj.x;
+            obj.textBubble.y = obj.y-obj.radius+5;
+        }
     }
     this.update = function(){
         if(this.count>0){
@@ -198,7 +204,7 @@ Arrow = function(data){
 
     obj.clear = function(){
         obj.destroy();
-        delete creatures[data.id];
+        delete creatures[obj.id];
     }
     obj.live = function(data){
         new Tween(obj, obj.id, {x:data.x-25, y:data.y-25}, 10);
@@ -220,7 +226,7 @@ Frost = function(data){
     obj.id = data.id;
 
     obj.clear = function(){
-        delete creatures[data.id];
+        delete creatures[obj.id];
     }
     obj.live = function(data){
         new Flake(data.x-25,data.y-25);
@@ -244,12 +250,12 @@ Potion = function(data){
 
     obj.clear = function(){
         obj.destroy();
-        delete creatures[data.id];
+        delete creatures[obj.id];
     }
     obj.live = function(data){
         new Tween(obj, obj.id, {x:data.x-25, y:data.y-25}, 10);
         if(data.action.collided){
-            //clearTimeout(obj.time);
+            clearTimeout(obj.time);
             if(data.action.heal){
                 new Heal(obj.x,obj.y);
             }else{
@@ -258,10 +264,10 @@ Potion = function(data){
             obj.clear();
         }
     }
-    /*obj.time = setTimeout(function(){
+    obj.time = setTimeout(function(){
         new Hit(obj.x,obj.y);
         obj.clear();
-    },6000);*/
+    },6000);
 
     creatures[data.id] = obj;
     return obj;
@@ -278,6 +284,8 @@ Hero = function(data){
     obj.events.onAnimationComplete.add(function(){
         obj.frame = 0;
     });
+    obj.animations.play('hit', 10, false);
+
     //stat
     obj.hp = data.hp;
 
@@ -286,13 +294,40 @@ Hero = function(data){
         if(obj.name) names.remove(obj.name);
         var style = Game.style;
         style.fontSize = '13px';
-        style.fill = Game.health[obj.hp];
+        style.fill = (obj.hp>5? Game.health[5]:Game.health[obj.hp]);
         style.wordWrapWidth = obj.width;
         obj.name = game.add.text(data.x-data.radius, data.y-data.radius, data.name, style);
         obj.name.anchor.set(0.5);
         names.add(obj.name);
     }
     obj.setName();
+
+    //text
+    obj.clearText = function(){
+        obj.text.destroy();
+        obj.textBubble.destroy();
+        obj.name.visible = true;
+    }
+    obj.setText = function(data){
+        if(obj.text) obj.clearText();
+        var style = Game.style;
+        style.fontSize = '13px';
+        style.fill = '#333333';
+        style.wordWrapWidth = obj.width*4;
+        style.backgroundColor = 'rgba(255,255,255,1)';
+        style.boundsAlignV = 'top';
+
+        obj.text = game.add.text(data.x-data.radius, data.y-data.radius, '\n  '+data.text+'  ', style);
+        obj.text.anchor.set(0.5);
+        obj.text.lineSpacing = -16;
+        obj.textBubble = game.add.sprite(data.x-data.radius, data.y-data.radius, 'bubble');
+        obj.textBubble.anchor.set(0.5,0.5);
+
+        obj.name.visible = false;
+        setTimeout(function(){
+            obj.clearText();
+        },10000);
+    }
 
     obj.shadow = {
         scale: data.shadow.scale,
@@ -344,11 +379,14 @@ Hero = function(data){
             obj.animations.play('hit', 10, false);
             new Heal(obj.x,obj.y);
         }
+        if(data.text){
+            obj.setText(data);
+        }
         
         if(data.hp<=0 || data.action.left){
             obj.clear();
             if(player==obj){
-                body.appendChild(ui.current);
+                ui.replay();
             }
         }else{
             new Tween(obj, obj.id, {rotation:data.rotation, x:data.x, y:data.y}, 10);
@@ -364,7 +402,6 @@ Player = function(data){
 }
 
 Zombie = function(data){
-    new Heal(data.x,data.y);
     var obj = zombies.create(data.x, data.y, 'zombie');
     obj.id = data.id;
     obj.radius = data.radius;
@@ -374,6 +411,7 @@ Zombie = function(data){
     obj.events.onAnimationComplete.add(function(){
         obj.frame = 0;
     });
+    obj.animations.play('hit', 10, false);
 
     obj.shadow = {
         scale: data.shadow.scale,

@@ -405,6 +405,11 @@ Hero = function(socket,data){
         //stat
         data.hp = ctr.stat.hp;
         data.action = ctr.action;
+        //special
+        if(ctr.text){
+            data.text = ctr.text;
+            delete ctr.text;
+        }
         if(ctr.stat.hp<=0) ctr.clear();
         if(ctr.action.left) ctr.leave();
         return data;

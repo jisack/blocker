@@ -40,7 +40,8 @@ function client(){
     socket.on('connect', function(e){
         init();
         socket.emit('message',JSON.stringify({
-            status:'load'
+            status:'load',
+            id: playId
         }));
         console.log('Connected');
     });

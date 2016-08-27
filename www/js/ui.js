@@ -10,10 +10,35 @@ function mobileUI(){
                 rotation: player.rotation
             });
         }, this, 2, 1, 0);
+    }else{
+        body.appendChild(ui.text);
     }
 }
 
+function resizeUI(){
+    ui.current.style.left = (window.innerWidth/2)-(ui.current.offsetWidth/2)+'px';
+    ui.current.style.top = (window.innerHeight/2)-(ui.current.offsetHeight/2)+'px';
+    ui.text.style.left = (window.innerWidth/2)-(ui.text.offsetWidth/2)+'px';
+}
+
 //UI
+Text = function(){
+    var text = document.createElement('input');
+    text.className = 'text';
+    text.maxLength = 18;
+    text.placeholder = 'Say Something';
+    text.onkeyup = function(e){
+        if(e.keyCode==13){
+            send({
+                status: 'text',
+                id: player.id,
+                text: text.value
+            });
+            text.value = '';
+        }
+    }
+    return text;
+}
 Selector = function(data){
     var div = document.createElement('div');
     div.className = 'selector';
@@ -42,6 +67,7 @@ Selector = function(data){
         var img = div.list[div.i];
         img.style.display = 'inline-block';
         ui.job = img.data;
+        ui.current.right.setAttribute('job',img.data+' :');
         img.src = 'assets/'+ui.team+'/model.'+ui.job+'.png';
         div.current = img;
         ui.playable();
@@ -58,7 +84,7 @@ Selector = function(data){
         div.right.click();
     }while(ui.job!=ui.lastJob);
 
-    div.left.click();
+    //div.left.click();
     return div;
 }
 Container = function(){
@@ -84,8 +110,11 @@ StartUI = function(){
     div.name.maxLength = 8;
     div.name.placeholder = 'Enter Name';
     div.name.value = localStorage.getItem('name')||'';
-    div.name.onkeyup = function(){
+    div.name.onkeyup = function(e){
         ui.playable();
+        if(e.keyCode==13){
+            div.play.click();
+        }
     }
     div.play = document.createElement('button');
     div.play.className = 'play';
@@ -122,12 +151,9 @@ StartUI = function(){
     div.top.appendChild(div.red);
     div.top.appendChild(div.blue);
 
-    div.selector = new Selector(Game.jobs);
-
     div.left.appendChild(div.name);
     div.left.appendChild(div.play);
     div.right.appendChild(div.top);
-    div.right.appendChild(div.selector);
     div.appendChild(div.logo);
     div.appendChild(div.left);
     div.appendChild(div.right);
@@ -152,12 +178,19 @@ var ui = {
         ui.team = localStorage.getItem('team')||team[Math.floor(Math.random()*2)];
         ui.lastJob = localStorage.getItem('job')||'warrior';
         ui.current = new StartUI();
+        ui.current.selector = new Selector(Game.jobs);
+        ui.current.right.appendChild(ui.current.selector);
+        ui.text = new Text();
         body.appendChild(ui.current);
+
         //default
         if(ui.team=='B'){
             ui.current.blue.click();
         }
         ui.current.name.focus();
     },
+    replay: function(){
+        body.appendChild(ui.current);
+        if(body.contains(ui.text)) body.removeChild(ui.text);
+    }
 };
-ui.start();

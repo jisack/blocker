@@ -95,6 +95,12 @@ function attack(data){
         hero.attack();
     }
 }
+function text(data){
+    if(users[data.id]){
+        var hero = users[data.id];
+        hero.text = data.text;
+    }
+}
 function leave(socket){
    /* for(var i in users){
         if(users[i].socket==socket){
@@ -125,6 +131,9 @@ io.on('connection', function(socket) {
                 break;
             case 'attack':
                 attack(data);
+                break;
+            case 'text':
+                text(data);
                 break;
         }
     });

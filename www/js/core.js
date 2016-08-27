@@ -16,6 +16,7 @@ function preload(){
     //ui
     game.load.image('move', 'assets/ui/move.svg');
     game.load.image('attack', 'assets/ui/attack.svg');
+    game.load.image('bubble', 'assets/ui/bubble.svg');
 
     //fx
     game.load.image('flake', 'assets/fx/flake.svg');
@@ -52,8 +53,9 @@ function preload(){
     game.scale.setResizeCallback(function(){
         game.scale.setMaximum();
         
-        ui.current.style.left = (window.innerWidth/2)-(ui.current.offsetWidth/2)+'px';
-        ui.current.style.top = (window.innerHeight/2)-(ui.current.offsetHeight/2)+'px';
+        if(ui.current){
+            resizeUI();
+        }
     });
 }
 
@@ -75,6 +77,9 @@ function create(){
 
     game.camera.x = size-window.innerWidth/2;
     game.camera.y = size-window.innerHeight/2;
+
+    ui.start();
+    resizeUI();
 }
 
 function playerRotation(){
@@ -97,10 +102,10 @@ function controllerRotation(){
 
 function updateUI(){
     if(mobile){
-        button.move.x = game.camera.x+20;
-        button.move.y = game.camera.y+window.innerHeight-100;
-        button.attack.x = game.camera.x+window.innerWidth-100;
-        button.attack.y = game.camera.y+window.innerHeight-100;
+        button.move.x = game.camera.x+25;
+        button.move.y = game.camera.y+window.innerHeight-105;
+        button.attack.x = game.camera.x+window.innerWidth-105;
+        button.attack.y = game.camera.y+window.innerHeight-105;
     }
 }
 
@@ -113,7 +118,7 @@ function update(){
 
             if (game.input.activePointer.leftButton.isDown || game.input.pointer1.isDown){
                 var rad = (mobile? controllerRotation():playerRotation());
-                player.rotation = rad;
+                player.rotation = (rad? rad:player.rotation);
 
                 if(rad && last.move<now-50){
                     send({
@@ -202,6 +207,7 @@ var map = {
         body.removeChild(ui.current);
         
         mobileUI();
+        resizeUI();
     },
     //creatures
     update: function(data){
