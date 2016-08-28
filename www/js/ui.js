@@ -2,21 +2,43 @@
 var button = {};
 function mobileUI(){
     if(mobile){
-        button.move = game.add.sprite(game.camera.x, game.camera.y+window.innerHeight-256, 'move');
-        button.attack = game.add.button(game.camera.x+window.innerWidth-256, game.camera.y+window.innerHeight-256, 'attack', function(){
-            send({
-                status: 'attack',
-                id: player.id,
-                rotation: player.rotation
-            });
-        }, this, 2, 1, 0);
+        if(!button.move){
+            button.move = game.add.sprite(game.camera.x, game.camera.y+window.innerHeight-256, 'move');
+            button.attack = game.add.button(game.camera.x+window.innerWidth-256, game.camera.y+window.innerHeight-256, 'attack', function(){
+                send({
+                    status: 'attack',
+                    id: player.id,
+                    rotation: player.rotation
+                });
+            }, this, 2, 1, 0);
+        }else{
+            button.move.visible = true;
+            button.attack.visible = true;
+        }
     }else{
         body.appendChild(ui.text);
+        ui.text.focus();
     }
 }
 
+function updateUI(){
+    if(mobile){
+        button.move.x = game.camera.x+25;
+        button.move.y = game.camera.y+game.height-105;
+        button.attack.x = game.camera.x+game.width-105;
+        button.attack.y = game.camera.y+game.height-105;
+    }
+}
 function resizeUI(){
-    ui.current.style.left = (window.innerWidth/2)-(ui.current.offsetWidth/2)+'px';
+    if(window.innerWidth<600){
+        game.scale.setGameSize(window.innerWidth*2,window.innerHeight*2);
+        game.scale.setUserScale(0.5,0.5,0,0);
+    }else{
+        game.scale.setGameSize(window.innerWidth,window.innerHeight);
+        game.scale.setUserScale(1,1,0,0);
+    }   
+
+    ui.current.style.left = (window.innerWidth/2)-253+'px';//(ui.current.offsetWidth/2)+'px';
     ui.current.style.top = (window.innerHeight/2)-(ui.current.offsetHeight/2)+'px';
     ui.text.style.left = (window.innerWidth/2)-(ui.text.offsetWidth/2)+'px';
 }
@@ -25,8 +47,8 @@ function resizeUI(){
 Text = function(){
     var text = document.createElement('input');
     text.className = 'text';
-    text.maxLength = 18;
-    text.placeholder = 'Say Something';
+    text.maxLength = 20;
+    text.placeholder = 'Message ✉';//💬';
     text.onkeyup = function(e){
         if(e.keyCode==13){
             send({
@@ -157,6 +179,10 @@ StartUI = function(){
     div.appendChild(div.logo);
     div.appendChild(div.left);
     div.appendChild(div.right);
+
+    div.oncontextmenu = function(){
+        return false;
+    }
     return div;
 }
 
@@ -190,7 +216,10 @@ var ui = {
         ui.current.name.focus();
     },
     replay: function(){
-        body.appendChild(ui.current);
         if(body.contains(ui.text)) body.removeChild(ui.text);
+        body.appendChild(ui.current);
+        button.move.visible = false;
+        button.attack.visible = false;
+        resizeUI();
     }
 };

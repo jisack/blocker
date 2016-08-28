@@ -18,6 +18,9 @@ function distance(x1,y1,x2,y2){
     var dy = y1-y2;
     return Math.sqrt(dx*dx + dy*dy);
 }
+function pointToRadian(x1,y1,x2,y2){
+    return Math.atan2(y1-y2,x1-x2);
+}
 
 //class
 Origin = function(x,y){
@@ -67,8 +70,8 @@ Creature = function(x,y){
     org.stat = {
         hp: 5,
         mhp: 5,
-        sp: 10,
-        msp:10,
+        sp: 0,
+        msp: 20,
         atk: 1,
         spd: Game.SPEED,
         ospd: Game.SPEED
@@ -85,8 +88,8 @@ Game.SPEED = 25;
 Game.JOB_WARRIOR = 1;
 Game.JOB_ARCHER = 2;
 //Game.JOB_SPEED = {'warrior':Game.SPEED-2, 'ranger':Game.SPEED};
-Game.JOB_MSP = {'warrior':9, 'ranger':12, 'warlock':11, 'doctor':20};
-Game.JOB_ATTACK = {'warrior':9, 'ranger':12, 'warlock':11, 'doctor':20};
+Game.JOB_MSP = {'warrior':8, 'ranger':12, 'warlock':11, 'doctor':20};
+Game.JOB_ATTACK = {'warrior':8, 'ranger':12, 'warlock':11, 'doctor':20};
 
 //weapons
 Arrow = function(data){
@@ -101,10 +104,6 @@ Arrow = function(data){
     org.action = {};
 
     org.update = function(){
-        //moving
-        org.x -= Math.cos(org.rotation)*60;
-        org.y -= Math.sin(org.rotation)*60;
-
         if(org.life>0){
             if(map.collide(org)){
                 org.life = 0;
@@ -130,6 +129,12 @@ Arrow = function(data){
                 }
             }
         }
+
+        //moving
+        if(org.life>0){
+            org.x -= Math.cos(org.rotation)*60;
+            org.y -= Math.sin(org.rotation)*60;
+        }
         org.life--;
     }
     org.clear = function(){
@@ -137,7 +142,7 @@ Arrow = function(data){
     }
     org.getData = function(){
         var data = org.data();
-        data.life = org.life;
+        //data.life = org.life;
         data.action = org.action;
         if(org.life<0) org.clear();
         return data;
@@ -155,10 +160,6 @@ Frost = function(data){
     org.life = 10;
 
     org.update = function(){
-        //moving
-        org.x -= Math.cos(org.rotation)*30;
-        org.y -= Math.sin(org.rotation)*30;
-
         if(org.life>0){
             if(map.collide(org)){
                 org.life = 0;
@@ -190,6 +191,12 @@ Frost = function(data){
                 }
             }
         }
+        
+        //moving
+        if(org.life>0){
+            org.x -= Math.cos(org.rotation)*30;
+            org.y -= Math.sin(org.rotation)*30;
+        }
         org.life--;
     }
 
@@ -208,13 +215,6 @@ Potion = function(data){
     org.action = {};
 
     org.update = function(){
-        //moving
-        if(org.life>0){
-            org.x -= Math.cos(org.rotation)*30;
-            org.y -= Math.sin(org.rotation)*30;
-        }
-        org.life--;
-        
         for(var i in map.creatures){
             var e = map.creatures[i];
             var collided = e.collide(org,true);
@@ -240,12 +240,19 @@ Potion = function(data){
             }
         }
 
+        //moving
+        if(org.life>0 && !org.action.collided){
+            org.x -= Math.cos(org.rotation)*30;
+            org.y -= Math.sin(org.rotation)*30;
+        }
+
         if(org.time<=0) org.action.collided = true;
+        org.life--;
         org.time--;
     }
     org.getData = function(){
         var data = org.data();
-        data.life = org.life;
+        //data.life = org.life;
         data.action = org.action;
         if(org.action.collided){
             org.clear();
@@ -291,6 +298,7 @@ Hero = function(socket,data){
     ctr.deadTime = 10;
 
     //job
+    ctr.stat.sp = Game.JOB_MSP[ctr.job];
     ctr.stat.msp = Game.JOB_MSP[ctr.job];
 
     ctr.attack = function(){
@@ -427,31 +435,6 @@ Monster = function(x,y){
     ctr.stat.ospd = 15;
     ctr.time = 0;
 
-    ctr.update = function(){
-        if(ctr.time<=0 ||ctr.action.hit){
-            ctr.time = Math.floor(Math.random()*30);
-            ctr.rotation = (Math.random()*Math.PI)*(Math.random()<0.5 ? -1:1);
-        }else{
-            ctr.dx = Math.cos(ctr.rotation)*ctr.stat.spd;
-            ctr.dy = Math.sin(ctr.rotation)*ctr.stat.spd;
-            ctr.x -= ctr.dx;
-            ctr.y -= ctr.dy;
-            ctr.time--;
-        }
-
-        map.collide(ctr);
-        for(var i in map.creatures){
-            map.creatures[i].collide(ctr);
-        }
-        for(var i in map.obstacles){
-            map.obstacles[i].collide(ctr);
-        }
-
-        //clear status
-        setTimeout(function(){
-            ctr.reset();
-        },1);
-    }
     ctr.reset = function(){
         ctr.action = {};
     }
@@ -471,6 +454,81 @@ Monster = function(x,y){
 Zombie = function(x,y){
     var mon = new Monster(x,y);
     mon.type = 'zombie';
+    mon.zone = 300;
+    mon.stat.msp = 25;
+
+    mon.update = function(){
+        if(mon.time<=0 ||mon.action.hit){
+            mon.time = Math.floor(Math.random()*30);
+            mon.rotation = (Math.random()*Math.PI)*(Math.random()<0.5 ? -1:1);
+        }
+
+        var closetDist = 1000;
+        var closet = null;
+        map.collide(mon);
+        for(var i in map.creatures){
+            var e = map.creatures[i];
+            e.collide(mon);
+            if(!mon.target){
+                if(e!=mon && e.team!=mon.team &&e.stat.hp>0){
+                    var dist = distance(mon.x,mon.y,e.x,e.y);
+                    if(closetDist>dist && mon.zone>dist){
+                        closetDist = dist;
+                        closet = e;
+                    }
+                }
+            }
+        }
+
+        //targeting
+        if(closet){
+            mon.target = closet;
+        }
+        if(!mon.target){
+            mon.dx = Math.cos(mon.rotation)*mon.stat.spd;
+            mon.dy = Math.sin(mon.rotation)*mon.stat.spd;
+        }else if(distance(mon.x,mon.y, mon.target.x,mon.target.y)<mon.zone){
+            var e = mon.target;
+            var rad = pointToRadian(mon.x,mon.y, e.x,e.y);
+            mon.rotation = rad;
+            mon.dx = Math.cos(rad)*mon.stat.spd;
+            mon.dy = Math.sin(rad)*mon.stat.spd;      
+            
+            //attack
+            var dx = Math.cos(mon.rotation)*15;
+            var dy = Math.sin(mon.rotation)*15;
+            var fx = mon.x - dx;
+            var fy = mon.y - dy;
+            var dist = distance(e.x,e.y,fx,fy);
+            if(e.radius*1.6>dist && mon.stat.sp>=25){
+                mon.stat.sp -= 25;
+                e.stat.hp--;
+                e.action.hit = true;
+                mon.action.attack = true;
+
+                if(e.stat.hp<=0){
+                    delete mon.target;
+                }
+            }
+        }else{
+            delete mon.target;
+        }
+        mon.x -= mon.dx;
+        mon.y -= mon.dy;
+        mon.time--;
+        
+        for(var i in map.obstacles){
+            map.obstacles[i].collide(mon);
+        }
+
+        //regenration
+        if(mon.stat.sp<mon.stat.msp) mon.stat.sp++;
+
+        //clear status
+        setTimeout(function(){
+            mon.reset();
+        },1);
+    }
 
     map.creatures[mon.id] = mon;
     return mon;
@@ -618,17 +676,17 @@ var map = {
     creatures: {},
     shots: {},
     collide: function(ctr){
-        if(ctr.x<0){
+        if(ctr.x-ctr.radius<0){
             ctr.x = 0+ctr.radius;
             return true;
-        }else if(ctr.x>map.width){
-            ctr.x = map.width-ctr.radius;
+        }else if(ctr.x>map.width+ctr.radius){
+            ctr.x = map.width+ctr.radius;
             return true;
-        }else if(ctr.y<0){
+        }else if(ctr.y-ctr.radius<0){
             ctr.y = 0+ctr.radius;
             return true;
-        }else if(ctr.y>map.height){
-            ctr.y = map.height-ctr.radius;
+        }else if(ctr.y>map.height+ctr.radius){
+            ctr.y = map.height+ctr.radius;
             return true;
         }else{
             return false;

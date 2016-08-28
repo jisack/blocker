@@ -29,7 +29,7 @@ function preload(){
 
     //creatures
     game.load.spritesheet('zombie', 'assets/zombie.svg',46,46);
-    game.load.image('hands', 'assets/weapons/hands.svg');
+    game.load.spritesheet('hands', 'assets/weapons/hands.svg',160,160);
 
     game.load.spritesheet('Awarrior', 'assets/A/warrior.svg',46,46);
     game.load.spritesheet('Aranger', 'assets/A/ranger.svg',46,46);
@@ -49,10 +49,11 @@ function preload(){
     game.load.spritesheet('cloak', 'assets/weapons/cloak.svg',160,160);
     game.load.spritesheet('bag', 'assets/weapons/bag.svg',160,160);
     
-    game.scale.scaleMode = Phaser.ScaleManager.RESIZE;
+    game.scale.scaleMode = Phaser.ScaleManager.USER_SCALE;
+    game.scale.pageAlignHorizontally = true;
+    game.scale.pageAlignVertically = true;
     game.scale.setResizeCallback(function(){
-        game.scale.setMaximum();
-        
+        //game.scale.setMaximum();
         if(ui.current){
             resizeUI();
         }
@@ -93,20 +94,11 @@ function playerRotation(){
 function controllerRotation(){
     var rad = pointToRadian(
         60,
-        window.innerHeight-60,
+        game.height-60,
         game.input.x,
         game.input.y);
-    return (game.input.x<window.innerWidth/2 && 
-        game.input.y>window.innerHeight/2? rad:null);
-}
-
-function updateUI(){
-    if(mobile){
-        button.move.x = game.camera.x+25;
-        button.move.y = game.camera.y+window.innerHeight-105;
-        button.attack.x = game.camera.x+window.innerWidth-105;
-        button.attack.y = game.camera.y+window.innerHeight-105;
-    }
+    return (game.input.x<game.width/2 && 
+        game.input.y>game.height/2? rad:null);
 }
 
 var last = {move:0, attack:0};

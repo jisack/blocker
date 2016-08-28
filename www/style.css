@@ -19,13 +19,22 @@ html,body{
 }
 
 #logo{
+    position:relative;
     width:300px;
     height:100px;
-    margin:-30px auto 0 auto;
+    margin:-25px auto 0 auto;
     background:url(assets/logo.svg) no-repeat center;
 }
+/*#logo:after{
+    font-size:12px;
+    position:absolute;
+    top:23px;right:35px;
+    color:#fff;
+    content:'Beta';
+}*/
 .container{
     position:fixed;
+    white-space:nowrap;
 }
 
 .left,.right{
@@ -62,6 +71,22 @@ html,body{
     box-shadow:0 10px 30px rgba(0,0,0,0.1); 
 }
 
+input::-webkit-input-placeholder{
+	color:#fff !important;
+    opacity:0.5 !important;
+}
+input:-moz-placeholder{
+	color:#fff !important;
+    opacity:0.5 !important;
+}
+input::-moz-placeholder{
+	color:#fff !important;
+    opacity:0.5 !important;
+}
+input:-ms-input-placeholder{  
+	color:#fff !important;
+    opacity:0.5 !important;
+}
 input{
     text-align:center;
     width:180px;
@@ -78,8 +103,9 @@ input{
     user-select: text;
 }
 input.text{
+    font-size:13px;
     position:fixed;
-    bottom:20px;
+    bottom:15px;
     padding:12px;
 }
 .play{
@@ -93,7 +119,7 @@ input.text{
     border-radius: 4px;
 }
 .play:hover{
-    color:#4EC258;
+    color:#3DB148;
     background:#fff;
     cursor:pointer;
 }

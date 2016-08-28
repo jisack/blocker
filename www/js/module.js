@@ -113,9 +113,9 @@ Tween = function(obj,id,data,time,slow){
         }
         if(obj.text){
             obj.text.x = obj.x;
-            obj.text.y = obj.y-obj.radius-obj.radius/3;
+            obj.text.y = obj.y-obj.radius-obj.radius/2;
             obj.textBubble.x = obj.x;
-            obj.textBubble.y = obj.y-obj.radius+5;
+            obj.textBubble.y = obj.y-obj.radius;
         }
     }
     this.update = function(){
@@ -265,9 +265,8 @@ Potion = function(data){
         }
     }
     obj.time = setTimeout(function(){
-        new Hit(obj.x,obj.y);
         obj.clear();
-    },6000);
+    },6300);
 
     creatures[data.id] = obj;
     return obj;
@@ -294,6 +293,7 @@ Hero = function(data){
         if(obj.name) names.remove(obj.name);
         var style = Game.style;
         style.fontSize = '13px';
+        style.fontWeight = 'normal';
         style.fill = (obj.hp>5? Game.health[5]:Game.health[obj.hp]);
         style.wordWrapWidth = obj.width;
         obj.name = game.add.text(data.x-data.radius, data.y-data.radius, data.name, style);
@@ -304,6 +304,7 @@ Hero = function(data){
 
     //text
     obj.clearText = function(){
+        clearTimeout(obj.textTime);
         obj.text.destroy();
         obj.textBubble.destroy();
         obj.name.visible = true;
@@ -312,21 +313,22 @@ Hero = function(data){
         if(obj.text) obj.clearText();
         var style = Game.style;
         style.fontSize = '13px';
-        style.fill = '#333333';
+        style.fontWeight = 'normal';
+        style.fill = '#444444';
         style.wordWrapWidth = obj.width*4;
         style.backgroundColor = 'rgba(255,255,255,1)';
-        style.boundsAlignV = 'top';
 
-        obj.text = game.add.text(data.x-data.radius, data.y-data.radius, '\n  '+data.text+'  ', style);
+        obj.text = game.add.text(data.x, data.y, '\n  '+data.text+'  ', style);
         obj.text.anchor.set(0.5);
         obj.text.lineSpacing = -16;
-        obj.textBubble = game.add.sprite(data.x-data.radius, data.y-data.radius, 'bubble');
+        obj.textBubble = game.add.sprite(data.x, data.y, 'bubble');
         obj.textBubble.anchor.set(0.5,0.5);
+        delete style.backgroundColor;
 
         obj.name.visible = false;
-        setTimeout(function(){
+        obj.textTime = setTimeout(function(){
             obj.clearText();
-        },10000);
+        },6000);
     }
 
     obj.shadow = {
@@ -426,7 +428,14 @@ Zombie = function(data){
     //weapon
     obj.weapon = weapons.create(data.x, data.y, 'hands');
     obj.weapon.anchor.setTo(0.5, 0.5);
+    obj.weapon.animations.add('attack');
+    obj.weapon.events.onAnimationComplete.add(function(){
+        obj.weapon.frame = 0;
+    });
 
+    obj.attack = function(){
+        obj.weapon.animations.play('attack', 20, false);
+    }
     obj.hit = function(){
         obj.animations.play('hit', 10, false);
         new Hit(obj.x,obj.y);
@@ -443,6 +452,9 @@ Zombie = function(data){
     obj.live = function(data){
         if(data.action.hit){
             obj.hit();
+        }
+        if(data.action.attack){
+            obj.attack();
         }
         
         if(data.hp<=0){
