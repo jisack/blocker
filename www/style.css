@@ -163,3 +163,18 @@ input.text{
 .ui-right{
     background:url(assets/ui/right.svg) no-repeat center;
 }
+
+.fb-share{
+    position:fixed !important;
+    top:12px;right:12px;
+    width:30px;
+    height:30px;
+    background:url(assets/ui/fb.png) no-repeat center;
+    background-size:contain;
+    border:3px solid transparent;
+    border-radius:2px;
+}
+.fb-share:hover{
+    cursor:pointer;
+    border:3px solid #fff;
+}

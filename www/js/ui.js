@@ -214,6 +214,7 @@ var ui = {
             ui.current.blue.click();
         }
         ui.current.name.focus();
+
     },
     replay: function(){
         if(body.contains(ui.text)) body.removeChild(ui.text);
