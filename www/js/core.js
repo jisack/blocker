@@ -41,6 +41,11 @@ function preload(){
     game.load.spritesheet('Bwarlock', 'assets/B/warlock.svg',46,46);
     game.load.spritesheet('Bdoctor', 'assets/B/doctor.svg',46,46);
 
+    game.load.spritesheet('Cwarrior', 'assets/C/warrior.svg',46,46);
+    game.load.spritesheet('Cranger', 'assets/C/ranger.svg',46,46);
+    game.load.spritesheet('Cwarlock', 'assets/C/warlock.svg',46,46);
+    game.load.spritesheet('Cdoctor', 'assets/C/doctor.svg',46,46);
+
     //weapons
     game.load.spritesheet('sword', 'assets/weapons/sword.svg',160,160);
     game.load.spritesheet('bow', 'assets/weapons/bow.svg',160,160);
@@ -60,7 +65,7 @@ function preload(){
     });
 }
 
-var size = 3000;
+var size = 10000;
 function create(){
     socket = io.connect('http://'+location.hostname+':8000');//new WebSocket('ws://'+location.hostname+':8888');
     client();

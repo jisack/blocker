@@ -159,6 +159,7 @@ StartUI = function(){
         div.selector.current.src = 'assets/'+ui.team+'/model.'+ui.job+'.png';
         div.red.className = 'selected';
         div.blue.className = '';
+        div.yellow.className = '';
         ui.playable();
     }
     div.blue = document.createElement('button');
@@ -168,10 +169,23 @@ StartUI = function(){
         div.selector.current.src = 'assets/'+ui.team+'/model.'+ui.job+'.png';
         div.red.className = '';
         div.blue.className = 'selected';
+        div.yellow.className = '';
+        ui.playable();
+    }
+    div.yellow = document.createElement('button');
+    div.yellow.id = 'yellow';
+    div.yellow.style.background = '#E28F2B';
+    div.yellow.onclick = function(){
+        ui.team = 'C';
+        div.selector.current.src = 'assets/'+ui.team+'/model.'+ui.job+'.png';
+        div.red.className = '';
+        div.blue.className = '';
+        div.yellow.className = 'selected';
         ui.playable();
     }
     div.top.appendChild(div.red);
     div.top.appendChild(div.blue);
+    div.top.appendChild(div.yellow);
 
     div.left.appendChild(div.name);
     div.left.appendChild(div.play);
@@ -200,8 +214,8 @@ var ui = {
         }
     },
     start: function(){
-        var team = ['A','B'];
-        ui.team = localStorage.getItem('team')||team[Math.floor(Math.random()*2)];
+        var team = ['A','B','C'];
+        ui.team = localStorage.getItem('team')||team[Math.floor(Math.random()*3)];
         ui.lastJob = localStorage.getItem('job')||'warrior';
         ui.current = new StartUI();
         ui.current.selector = new Selector(Game.jobs);
@@ -212,6 +226,8 @@ var ui = {
         //default
         if(ui.team=='B'){
             ui.current.blue.click();
+        }else if(ui.team=='C'){
+            ui.current.yellow.click();
         }
         ui.current.name.focus();
 

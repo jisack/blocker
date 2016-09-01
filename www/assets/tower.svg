@@ -1,5 +1,5 @@
 
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="none" x="0px" y="0px" width="240px" height="80px" viewBox="0 0 240 80">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="none" x="0px" y="0px" width="320px" height="80px" viewBox="0 0 320 80">
 <defs>
 <linearGradient id="Gradient_1" gradientUnits="userSpaceOnUse" x1="68.4625" y1="68.5625" x2="81.5375" y2="81.63749999999999" spreadMethod="pad">
 <stop  offset="0%" stop-color="#000000" stop-opacity="0.2"/>
@@ -145,6 +145,54 @@
 <stop  offset="100%" stop-color="#000000" stop-opacity="0"/>
 </linearGradient>
 
+<linearGradient id="Gradient_25" gradientUnits="userSpaceOnUse" x1="308.4625" y1="68.5625" x2="321.5375" y2="81.63749999999999" spreadMethod="pad">
+<stop  offset="0%" stop-color="#000000" stop-opacity="0.2"/>
+
+<stop  offset="100%" stop-color="#000000" stop-opacity="0"/>
+</linearGradient>
+
+<linearGradient id="Gradient_26" gradientUnits="userSpaceOnUse" x1="280.0125" y1="68.2625" x2="292.4875" y2="80.7375" spreadMethod="pad">
+<stop  offset="0%" stop-color="#000000" stop-opacity="0.2"/>
+
+<stop  offset="100%" stop-color="#000000" stop-opacity="0"/>
+</linearGradient>
+
+<linearGradient id="Gradient_27" gradientUnits="userSpaceOnUse" x1="251.41250000000002" y1="68.1625" x2="264.6875" y2="81.4375" spreadMethod="pad">
+<stop  offset="0%" stop-color="#000000" stop-opacity="0.2"/>
+
+<stop  offset="100%" stop-color="#000000" stop-opacity="0"/>
+</linearGradient>
+
+<linearGradient id="Gradient_28" gradientUnits="userSpaceOnUse" x1="251.27499999999998" y1="39.775" x2="267.025" y2="55.525" spreadMethod="pad">
+<stop  offset="0%" stop-color="#000000" stop-opacity="0.2"/>
+
+<stop  offset="100%" stop-color="#000000" stop-opacity="0"/>
+</linearGradient>
+
+<linearGradient id="Gradient_29" gradientUnits="userSpaceOnUse" x1="251.075" y1="11.074999999999998" x2="268.22499999999997" y2="28.225" spreadMethod="pad">
+<stop  offset="0%" stop-color="#000000" stop-opacity="0.2"/>
+
+<stop  offset="100%" stop-color="#000000" stop-opacity="0"/>
+</linearGradient>
+
+<linearGradient id="Gradient_30" gradientUnits="userSpaceOnUse" x1="308.5125" y1="39.9625" x2="320.28749999999997" y2="51.737500000000004" spreadMethod="pad">
+<stop  offset="0%" stop-color="#000000" stop-opacity="0.2"/>
+
+<stop  offset="100%" stop-color="#000000" stop-opacity="0"/>
+</linearGradient>
+
+<linearGradient id="Gradient_31" gradientUnits="userSpaceOnUse" x1="308.1125" y1="11.2625" x2="320.4875" y2="23.6375" spreadMethod="pad">
+<stop  offset="0%" stop-color="#000000" stop-opacity="0.2"/>
+
+<stop  offset="100%" stop-color="#000000" stop-opacity="0"/>
+</linearGradient>
+
+<linearGradient id="Gradient_32" gradientUnits="userSpaceOnUse" x1="279.775" y1="11.274999999999999" x2="295.525" y2="27.025" spreadMethod="pad">
+<stop  offset="0%" stop-color="#000000" stop-opacity="0.2"/>
+
+<stop  offset="100%" stop-color="#000000" stop-opacity="0"/>
+</linearGradient>
+
 <g id="Layer0_0_FILL">
 <path fill="#B2C2A5" stroke="none" d="
 M 159.8 79.8
@@ -154,13 +202,19 @@ L 148.5 11 148.5 68.75 90.75 68.75 90.75 11
 M 239.8 79.8
 L 239.8 0 160 0 160 79.8 239.8 79.8
 M 170.75 11
-L 228.5 11 228.5 68.75 170.75 68.75 170.75 11 Z"/>
+L 228.5 11 228.5 68.75 170.75 68.75 170.75 11
+M 319.8 79.8
+L 319.8 0 240 0 240 79.8 319.8 79.8
+M 250.75 11
+L 308.5 11 308.5 68.75 250.75 68.75 250.75 11 Z"/>
 
 <path fill="#A5B499" stroke="none" d="
 M 148.5 11
 L 90.75 11 90.75 68.75 148.5 68.75 148.5 11
 M 228.5 11
-L 170.75 11 170.75 68.75 228.5 68.75 228.5 11 Z"/>
+L 170.75 11 170.75 68.75 228.5 68.75 228.5 11
+M 308.5 11
+L 250.75 11 250.75 68.75 308.5 68.75 308.5 11 Z"/>
 </g>
 
 <g id="Layer0_1_FILL">
@@ -394,6 +448,82 @@ L 155 47.05 141.45 47.05 153.3 58.95 167.15 45.05 155 32.9 Z"/>
 M 155 4.8
 L 155 17.55 141.45 17.55 154.1 30.2 167.25 17.05 155 4.8 Z"/>
 </g>
+
+<g id="Layer0_8_FILL">
+<path fill="#9FA892" stroke="none" d="
+M 293.9 73.65
+L 291.9 73.65 291.9 75.55 293.9 75.55 293.9 73.65
+M 269.9 63.65
+L 265.9 63.65 265.9 67.55 269.9 67.65 269.9 63.65
+M 262.9 62.15
+L 260.9 62.15 260.9 64.05 262.9 64.05 262.9 62.15
+M 246.9 29.65
+L 244.9 29.65 244.9 31.55 246.9 31.55 246.9 29.65
+M 310.15 17.65
+L 306.15 17.65 306.15 21.55 310.15 21.65 310.15 17.65
+M 290.9 18.4
+L 288.9 18.4 288.9 20.3 290.9 20.3 290.9 18.4 Z"/>
+</g>
+
+<g id="Layer0_9_FILL">
+<path fill="#E28F2B" stroke="none" d="
+M 262.95 50.05
+L 263.15 50.4 280.4 59.1 296.85 50.4 296.85 21 262.95 21 262.95 50.05
+M 268.2 46.65
+L 280 26.3 291.75 46.7 268.2 46.65 Z"/>
+</g>
+
+<g id="Layer0_10_FILL">
+<path fill="#C9D9BB" stroke="none" d="
+M 315 75
+L 315 61.45 301.45 61.45 301.45 75 315 75
+M 272.9 61.45
+L 272.9 75 287.05 75 287.05 61.45 272.9 61.45
+M 244.8 61.45
+L 244.8 75 257.55 75 257.55 61.45 244.8 61.45
+M 244.8 47.05
+L 257.55 47.05 257.55 32.9 244.8 32.9 244.8 47.05
+M 244.8 4.8
+L 244.8 17.55 257.55 17.55 257.55 4.8 244.8 4.8
+M 301.45 32.9
+L 301.45 47.05 315 47.05 315 32.9 301.45 32.9
+M 315 17.55
+L 315 4.8 301.45 4.8 301.45 17.55 315 17.55
+M 287.05 17.55
+L 287.05 4.8 272.9 4.8 272.9 17.55 287.05 17.55 Z"/>
+
+<path fill="url(#Gradient_25)" stroke="none" d="
+M 315 61.45
+L 315 75 301.45 75 315 88.75 328.55 75 315 61.45 Z"/>
+
+<path fill="url(#Gradient_26)" stroke="none" d="
+M 287.05 61.45
+L 287.05 75 272.9 75 286.05 87.55 299.65 74 287.05 61.45 Z"/>
+
+<path fill="url(#Gradient_27)" stroke="none" d="
+M 257.55 61.45
+L 257.55 75 244.8 75 258.35 88.15 271.3 75.2 257.55 61.45 Z"/>
+
+<path fill="url(#Gradient_28)" stroke="none" d="
+M 257.55 47.05
+L 244.8 47.05 260.15 62.4 273.6 48.95 257.55 32.9 257.55 47.05 Z"/>
+
+<path fill="url(#Gradient_29)" stroke="none" d="
+M 257.55 4.8
+L 257.55 17.55 244.8 17.55 261.75 34.5 274.5 21.75 257.55 4.8 Z"/>
+
+<path fill="url(#Gradient_30)" stroke="none" d="
+M 315 32.9
+L 315 47.05 301.45 47.05 313.3 58.95 327.15 45.05 315 32.9 Z"/>
+
+<path fill="url(#Gradient_31)" stroke="none" d="
+M 315 4.8
+L 315 17.55 301.45 17.55 314.1 30.2 327.25 17.05 315 4.8 Z"/>
+
+<path fill="url(#Gradient_32)" stroke="none" d="
+M 287.05 4.8
+L 287.05 17.55 272.9 17.55 288.95 33.6 302.4 20.15 287.05 4.8 Z"/>
+</g>
 </defs>
 
 <g transform="matrix( 1, 0, 0, 1, 0,0) ">
@@ -434,5 +564,17 @@ L 155 17.55 141.45 17.55 154.1 30.2 167.25 17.05 155 4.8 Z"/>
 
 <g transform="matrix( 1, 0, 0, 1, 0,0) ">
 <use xlink:href="#Layer0_7_FILL"/>
+</g>
+
+<g transform="matrix( 1, 0, 0, 1, 0,0) ">
+<use xlink:href="#Layer0_8_FILL"/>
+</g>
+
+<g transform="matrix( 1, 0, 0, 1, 0,0) ">
+<use xlink:href="#Layer0_9_FILL"/>
+</g>
+
+<g transform="matrix( 1, 0, 0, 1, 0,0) ">
+<use xlink:href="#Layer0_10_FILL"/>
 </g>
 </svg>

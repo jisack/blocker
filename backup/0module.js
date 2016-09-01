@@ -22,30 +22,6 @@ function pointToRadian(x1,y1,x2,y2){
     return Math.atan2(y1-y2,x1-x2);
 }
 
-function getAround(org,grid,func){
-    var x = Math.floor(org.x/map.grid);
-    var y = Math.floor(org.y/map.grid);
-    var arr = [(x-1)+','+(y-1), x+','+(y-1), (x+1)+','+(y-1),
-            (x-1)+','+y, x+','+y, (x+1)+','+y,
-            (x-1)+','+(y+1), x+','+(y+1), (x+1)+','+(y+1)];
-    
-    var objs = [];
-    for(var i in arr){
-        var g = grid[arr[i]];
-        if(g){
-            for(var j in g){
-                objs.push(g[j]);
-            }
-        }
-    }
-    func(objs);
-}
-function obstacleGrid(org){
-    org.lastGrid = Math.floor(org.x/map.grid)+','+Math.floor(org.y/map.grid);
-    if(!map._grids[org.lastGrid]) map._grids[org.lastGrid] = {};
-    map._grids[org.lastGrid][org.id] = org;
-}
-
 //class
 Origin = function(x,y){
     this.id = uuid();
@@ -88,14 +64,6 @@ Origin = function(x,y){
             }
         }
     }
-    /*this.grid = function(){
-        delete map.grids[this.lastGrid][this.id];
-        this.lastGrid = Math.floor(this.x/map.grid)+','+Math.floor(this.y/map.grid);
-        //if(!map.grids[this.lastGrid]) map.grids[this.lastGrid] = {};
-        map.grids[this.lastGrid][this.id] = this;
-    };
-    this.lastGrid = Math.floor(x/map.grid)+','+Math.floor(y/map.grid);
-    map.grids[this.lastGrid][this.id] = this;*/
 }
 Creature = function(x,y){
     var org = new Origin(x,y);
@@ -110,16 +78,6 @@ Creature = function(x,y){
     };
     org.zone = 500;
     org.team = 'none';
-
-    org.grid = function(){
-        delete map.grids[org.lastGrid][org.id];
-        org.lastGrid = Math.floor(org.x/map.grid)+','+Math.floor(org.y/map.grid);
-        if(!map.grids[org.lastGrid]) map.grids[org.lastGrid] = {};
-        map.grids[org.lastGrid][org.id] = org;
-    };
-    org.lastGrid = Math.floor(x/map.grid)+','+Math.floor(y/map.grid);
-    if(!map.grids[org.lastGrid]) map.grids[org.lastGrid] = {};
-    map.grids[org.lastGrid][org.id] = org;
 
     return org;
 }
@@ -147,40 +105,37 @@ Arrow = function(data){
 
     org.update = function(){
         if(org.life>0){
-            getAround(org,map.grids,function(ctrs){
-                for(var i in ctrs){
-                    var e = ctrs[i];
-                    var collided = e.collide(org,true);
-                    if(collided && e.id!=org.owner && e.action.attack){
-                        org.action.collided = true;
-                        org.life = 0;
-                        break;
-                    }else if(collided && e.id!=org.owner){
-                        if(e.team!=org.team) e.stat.hp -= org.damage;
-                        e.action.hit = true;
-                        org.life = 0;
-                        break;
-                    }
-                }
-            });
-            getAround(org,map._grids,function(objs){
-                for(var i in objs){
-                    if(objs[i].collide(org,true)){
-                        org.life = 0;
-                        break;
-                    }
-                }
-            });
-
-            //moving
-            org.x -= Math.cos(org.rotation)*60;
-            org.y -= Math.sin(org.rotation)*60;
             if(map.collide(org)){
                 org.life = 0;
             }
+            for(var i in map.creatures){
+                var e = map.creatures[i];
+                var collided = e.collide(org,true);
+                if(collided && e.id!=org.owner && e.action.attack){
+                    org.action.collided = true;
+                    org.life = 0;
+                    break;
+                }else if(collided && e.id!=org.owner){
+                    if(e.team!=org.team) e.stat.hp -= org.damage;
+                    e.action.hit = true;
+                    org.life = 0;
+                    break;
+                }
+            }
+            for(var i in map.obstacles){
+                if(map.obstacles[i].collide(org,true)){
+                    org.life = 0;
+                    break;
+                }
+            }
+        }
+
+        //moving
+        if(org.life>0){
+            org.x -= Math.cos(org.rotation)*60;
+            org.y -= Math.sin(org.rotation)*60;
         }
         org.life--;
-        org.grid();
     }
     org.clear = function(){
         delete map.shots[org.id];
@@ -192,15 +147,6 @@ Arrow = function(data){
         if(org.life<0) org.clear();
         return data;
     }
-    org.grid = function(){
-        delete map.sgrids[org.lastGrid][org.id];
-        org.lastGrid = Math.floor(org.x/map.grid)+','+Math.floor(org.y/map.grid);
-        if(!map.sgrids[org.lastGrid]) map.sgrids[org.lastGrid] = {};
-        map.sgrids[org.lastGrid][org.id] = org;
-    };
-    org.lastGrid = Math.floor(org.x/map.grid)+','+Math.floor(org.y/map.grid);
-    if(!map.sgrids[org.lastGrid]) map.sgrids[org.lastGrid] = {};
-    map.sgrids[org.lastGrid][org.id] = org;
 
     map.shots[org.id] = org;
     return org;
@@ -215,47 +161,43 @@ Frost = function(data){
 
     org.update = function(){
         if(org.life>0){
-            getAround(org,map.grids,function(ctrs){
-                for(var i in ctrs){
-                    var e = ctrs[i];
-                    var collided = e.collide(org,true);
-
-                    if(collided && e.id!=org.owner && e.action.attack){
-                        org.action.collided = true;
-                        org.life = 0;
-                        break;
-                    }else if(collided && e.id!=org.owner){
-                        var old = e.stat.ospd;
-                        e.stat.spd = e.stat.spd/2;
-                        if(e.team!=org.team) e.stat.hp -= org.damage;
-                        e.action.hit = true;
-                        setTimeout(function(){
-                            e.stat.spd = old;
-                        },2000);
-                        org.life = 0;
-                        break;
-                    }
-                }
-            });
-            getAround(org,map._grids,function(objs){
-                for(var i in objs){
-                    if(objs[i].collide(org,true)){
-                        org.life = 0;
-                        break;
-                    }
-                }
-            });
-
-            //moving
-            org.x -= Math.cos(org.rotation)*30;
-            org.y -= Math.sin(org.rotation)*30;
             if(map.collide(org)){
                 org.life = 0;
             }
+            for(var i in map.creatures){
+                var e = map.creatures[i];
+                var collided = e.collide(org,true);
+
+                if(collided && e.id!=org.owner && e.action.attack){
+                    org.action.collided = true;
+                    org.life = 0;
+                    break;
+                }else if(collided && e.id!=org.owner){
+                    var old = e.stat.ospd;
+                    e.stat.spd = e.stat.spd/2;
+                    if(e.team!=org.team) e.stat.hp -= org.damage;
+                    e.action.hit = true;
+                    setTimeout(function(){
+                        e.stat.spd = old;
+                    },2000);
+                    org.life = 0;
+                    break;
+                }
+            }
+            for(var i in map.obstacles){
+                if(map.obstacles[i].collide(org,true)){
+                    org.life = 0;
+                    break;
+                }
+            }
         }
         
+        //moving
+        if(org.life>0){
+            org.x -= Math.cos(org.rotation)*30;
+            org.y -= Math.sin(org.rotation)*30;
+        }
         org.life--;
-        org.grid();
     }
 
     map.shots[org.id] = org;
@@ -273,49 +215,40 @@ Potion = function(data){
     org.action = {};
 
     org.update = function(){
-        getAround(org,map.grids,function(ctrs){
-            for(var i in ctrs){
-                var e = ctrs[i];
-                var collided = e.collide(org,true);
-                if(collided && e.team==org.team && e.id!=org.owner){
-                    e.stat.hp += org.damage;
-                    e.action.heal = true;
-                    org.life = 0;
-                    org.action.collided = true;
-                    break;
-                }else if(collided && e.team!=org.team && e.id!=org.owner){
-                    e.stat.hp -= org.damage;
-                    e.action.hit = true;
-                    org.life = 0;
-                    org.action.collided = true;
-                    break;
-                }
+        for(var i in map.creatures){
+            var e = map.creatures[i];
+            var collided = e.collide(org,true);
+            if(collided && e.team==org.team && e.id!=org.owner){
+                e.stat.hp += org.damage;
+                e.action.heal = true;
+                org.life = 0;
+                org.action.collided = true;
+                break;
+            }else if(collided && e.team!=org.team && e.id!=org.owner){
+                e.stat.hp -= org.damage;
+                e.action.hit = true;
+                org.life = 0;
+                org.action.collided = true;
+                break;
             }
-        });
-        getAround(org,map._grids,function(objs){
-            for(var i in objs){
-                if(objs[i].collide(org,true)){
-                    org.life = 0;
-                    org.action.collided = true;
-                    break;
-                }
+        }
+        for(var i in map.obstacles){
+            if(map.obstacles[i].collide(org,true)){
+                org.life = 0;
+                org.action.collided = true;
+                break;
             }
-        });
+        }
 
         //moving
         if(org.life>0 && !org.action.collided){
             org.x -= Math.cos(org.rotation)*30;
             org.y -= Math.sin(org.rotation)*30;
         }
-        if(map.collide(org)){
-            org.life = 0;
-            org.action.collided = true;
-        }
 
         if(org.time<=0) org.action.collided = true;
         org.life--;
         org.time--;
-        org.grid();
     }
     org.getData = function(){
         var data = org.data();
@@ -392,11 +325,9 @@ Hero = function(socket,data){
                             }
                         }
                     }
-                    getAround(ctr,map.grids,function(ctrs){
-                        for(var i in ctrs){
-                            attack(ctrs[i]);
-                        }
-                    });
+                    for(var i in map.creatures){
+                        attack(map.creatures[i]);
+                    }
                     break;
 
                 case 'ranger':
@@ -443,16 +374,13 @@ Hero = function(socket,data){
 
             ctr.status = 'move';
         }
-        getAround(ctr,map.grids,function(ctrs){
-            for(var i in ctrs){
-                ctrs[i].collide(ctr);
-            }
-        });
-        getAround(ctr,map._grids,function(objs){
-            for(var i in objs){
-                objs[i].collide(ctr);
-            }   
-        });
+        map.collide(ctr);
+        for(var i in map.creatures){
+            map.creatures[i].collide(ctr);
+        }
+        for(var i in map.obstacles){
+            map.obstacles[i].collide(ctr);
+        }
 
         //stat
         if(ctr.stat.hp<=0) ctr.stat.hp = 0;
@@ -463,9 +391,6 @@ Hero = function(socket,data){
         setTimeout(function(){
             ctr.reset();
         },1);
-        
-        map.collide(ctr);
-        ctr.grid();
     }
     ctr.reset = function(){
         ctr.action = {};
@@ -541,21 +466,20 @@ Zombie = function(x,y){
 
         var closetDist = 1000;
         var closet = null;
-        getAround(mon,map.grids,function(ctrs){
-            for(var i in ctrs){
-                var e = ctrs[i];
-                e.collide(mon);
-                if(!mon.target){
-                    if(e!=mon && e.team!=mon.team &&e.stat.hp>0){
-                        var dist = distance(mon.x,mon.y,e.x,e.y);
-                        if(closetDist>dist && mon.zone>dist){
-                            closetDist = dist;
-                            closet = e;
-                        }
+        map.collide(mon);
+        for(var i in map.creatures){
+            var e = map.creatures[i];
+            e.collide(mon);
+            if(!mon.target){
+                if(e!=mon && e.team!=mon.team &&e.stat.hp>0){
+                    var dist = distance(mon.x,mon.y,e.x,e.y);
+                    if(closetDist>dist && mon.zone>dist){
+                        closetDist = dist;
+                        closet = e;
                     }
                 }
             }
-        });
+        }
 
         //targeting
         if(closet){
@@ -594,11 +518,9 @@ Zombie = function(x,y){
         mon.y -= mon.dy;
         mon.time--;
         
-        getAround(mon,map._grids,function(objs){
-            for(var i in objs){
-                objs[i].collide(mon);
-            }
-        });
+        for(var i in map.obstacles){
+            map.obstacles[i].collide(mon);
+        }
 
         //regenration
         if(mon.stat.sp<mon.stat.msp) mon.stat.sp++;
@@ -607,9 +529,6 @@ Zombie = function(x,y){
         setTimeout(function(){
             mon.reset();
         },1);
-        
-        map.collide(mon);
-        mon.grid();
     }
 
     map.creatures[mon.id] = mon;
@@ -625,8 +544,6 @@ Tree = function(x,y){
     org.shadow.spread *= org.scale;
     org.image = Math.floor(Math.random()*3);
     
-    obstacleGrid(org);
-
     map.obstacles[org.id] = org;
     return org;
 }
@@ -642,8 +559,6 @@ Rock = function(x,y){
     //org.radius *= org.scale;
     org.image = Math.floor(Math.random()*3);
     
-    obstacleGrid(org);
-
     map.obstacles[org.id] = org;
     return org;
 }
@@ -714,31 +629,29 @@ Tower = function(x,y){
         var Ainvaded = false;
         var Binvaded = false;
         var Cinvaded = false;
-        getAround(org,map._grids,function(ctrs){
-            for(var i in ctrs){
-                var ctr = ctrs[i];
-                var dist = distance(ctr.x,ctr.y,org.x,org.y);
-                if(dist<org.zone){
-                    if(ctr.team=='A'){
-                        Ainvaded = true;
-                    }else if(ctr.team=='B'){
-                        Binvaded = true;
-                    }else if(ctr.team=='C'){
-                        Cinvaded = true;
-                    }
+        for(var i in map.creatures){
+            var ctr = map.creatures[i];
+            var dist = distance(ctr.x,ctr.y,org.x,org.y);
+            if(dist<org.zone){
+                if(ctr.team=='A'){
+                    Ainvaded = true;
+                }else if(ctr.team=='B'){
+                    Binvaded = true;
+                }else if(ctr.team=='C'){
+                    Cinvaded = true;
                 }
             }
-            if((org.team=='none'||org.team=='B'||org.team=='C') &&Ainvaded &&!Binvaded &&!Cinvaded){
-                org.team = 'A';
-            }else if((org.team=='none'||org.team=='A'||org.team=='C') &&!Ainvaded &&Binvaded &&!Cinvaded){
-                org.team = 'B';
-            }else if((org.team=='none'||org.team=='A'||org.team=='B') &&!Ainvaded &&!Binvaded &&Cinvaded){
-                org.team = 'C';
-            }
-            /*else if(!Ainvaded &&!Binvaded){
-                org.team = 'none';
-            }*/
-        });
+        }
+        if((org.team=='none'||org.team=='B'||org.team=='C') &&Ainvaded &&!Binvaded &&!Cinvaded){
+            org.team = 'A';
+        }else if((org.team=='none'||org.team=='A'||org.team=='C') &&!Ainvaded &&Binvaded &&!Cinvaded){
+            org.team = 'B';
+        }else if((org.team=='none'||org.team=='A'||org.team=='B') &&!Ainvaded &&!Binvaded &&Cinvaded){
+            org.team = 'C';
+        }
+        /*else if(!Ainvaded &&!Binvaded){
+            org.team = 'none';
+        }*/
     }
 
     org.getData = function(){
@@ -748,8 +661,6 @@ Tower = function(x,y){
         return data;
     }
 
-    obstacleGrid(org);
-
     map.towers[org.id] = org;
     map.obstacles[org.id] = org;
     return org;
@@ -757,8 +668,7 @@ Tower = function(x,y){
 
 //map
 var map = {
-    grid:80,
-    size: 10000,
+    size: 3000,
     randomX: function(){
         return Math.floor(Math.random()*map.size);
     },
@@ -766,8 +676,6 @@ var map = {
         return Math.floor(Math.random()*map.size);
     },
     grids: {},
-    sgrids: {},
-    _grids: {},
     towers: {},
     obstacles: {},
     creatures: {},

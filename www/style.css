@@ -142,6 +142,10 @@ input.text{
     border:5px solid #fff;
 }
 
+#yellow{
+    position:absolute;
+    top:52px;right:15px;
+}
 .selector img{
     vertical-align:middle;
     width:256px;
@@ -152,7 +156,7 @@ input.text{
 .selector button{
     vertical-align:middle;
     width:30px;
-    height:100px;
+    height:60px;
     outline:0;
     border:0;
     cursor:pointer;

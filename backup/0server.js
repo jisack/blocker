@@ -43,6 +43,7 @@ var users = {};
 //constant
 Server = {};
 Server.TICK = 100;
+Server.grid = 100;
 
 //socket handling
 function send(socket,data){
@@ -148,11 +149,10 @@ io.on('connection', function(socket) {
 //create game
 function init(){
     //grid
-    var rows = Math.floor(map.size/Server.grid)+1;
+    var rows = Math.floor(map.size/server.grid);
     for(var i=0;i<rows;i++){
         for(var j=0;j<rows;j++){
-            map.grids[i+','+j] = {};
-            map.sgrids[i+','+j] = {};
+            
         }
     }
 
@@ -165,15 +165,14 @@ function init(){
         new Rock(map.randomX(),map.randomY());
     }
     //tower
-    new Tower(map.size/4,map.size/4);
-    new Tower(map.size/4*3,map.size/4);
-    new Tower(map.size/4,map.size/4*3);
-    new Tower(map.size/4*3,map.size/4*3);
+    new Tower(map.size/4,map.height/4);
+    new Tower(map.size/4*3,map.height/4);
+    new Tower(map.size/4,map.height/4*3);
+    new Tower(map.size/4*3,map.height/4*3);
 
-    for(var i=0;i<5000;i++){
+    for(var i=0;i<300;i++){
         new Zombie();
     }
-    setInterval(update,Server.TICK);
 }
 
 //update
@@ -202,7 +201,6 @@ function getCreatures(){
     }
     return data;
 }
-
 function update(){
     var data = getCreatures();
     for(var i in users){
@@ -212,10 +210,11 @@ function update(){
         });
     }
 }
+setInterval(update,Server.TICK);
 
 //garbage collection
 /*setInterval(function(){
     global.gc();
-},1000);*/
+},30000);*/
 
 eval(fs.readFileSync('phaser/module.js')+'');

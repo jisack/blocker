@@ -135,8 +135,8 @@ Tween = function(obj,id,data,time,slow){
 Game = {};
 Game.style = {font:"Montserrat", fill:"#fff", wordWrap:true, wordWrapWidth:null, align:"center"};
 Game.health = ['#FF0000','#FF3333','#FF6666','#FF9999','#FFCCCC','#fff'];
-Game.baseColor = {'none':'#FFFFFF', 'A':'#EE5A48', 'B':'#366EBB'};
-Game.baseCapture = {'none':'- Outpost', 'A':'+ Outpost', 'B':'+ Outpost'};
+Game.baseColor = {'none':'#FFFFFF', 'A':'#EE5A48', 'B':'#366EBB', 'C':'#E28F2B'};
+Game.baseCapture = {'none':'- Outpost', 'A':'+ Outpost', 'B':'+ Outpost', 'C':'+ Outpost'};
 
 Game.jobs = ['warrior','ranger','warlock','doctor'];
 Game.jobWeapon = {'warrior':'sword', 'ranger':'bow', 'warlock':'cloak', 'doctor':'bag'};
@@ -255,7 +255,7 @@ Potion = function(data){
     obj.live = function(data){
         new Tween(obj, obj.id, {x:data.x-25, y:data.y-25}, 10);
         if(data.action.collided){
-            clearTimeout(obj.time);
+            //clearTimeout(obj.time);
             if(data.action.heal){
                 new Heal(obj.x,obj.y);
             }else{
@@ -264,9 +264,9 @@ Potion = function(data){
             obj.clear();
         }
     }
-    obj.time = setTimeout(function(){
+    /*obj.time = setTimeout(function(){
         obj.clear();
-    },6300);
+    },6300);*/
 
     creatures[data.id] = obj;
     return obj;
@@ -511,6 +511,7 @@ Tower = function(data){
     obj.animations.add('none',[0],1,false);
     obj.animations.add('A',[1],1,false);
     obj.animations.add('B',[2],1,false);
+    obj.animations.add('C',[3],1,false);
     obj.animations.play(data.team);
 
     //zoning
